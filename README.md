@@ -1,4 +1,4 @@
-# Math Drill MVP - Educational Web Application
+# Math Drill - Educational Web Application
 
 A comprehensive, child-friendly web application for practicing addition and multiplication drills with numbers 0-9. Built with Flutter Web using clean architecture principles and modern state management patterns.
 
@@ -8,7 +8,7 @@ This project demonstrates the development of a complete educational web applicat
 
 ## ✨ Features
 
-### Phase 1 (Current MVP)
+### Phase 1
 - **🎮 Multiple Game Modes**: Addition and Multiplication drills
 - **⏱️ Adaptive Timer System**: 2-5 second timers based on difficulty
 - **🎯 Question Types**: Fill-in-the-blank and Multiple Choice Questions (MCQ)
