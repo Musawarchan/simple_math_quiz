@@ -313,9 +313,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: isMobile ? 2 : 3,
-        crossAxisSpacing: isMobile ? 12 : 16,
-        mainAxisSpacing: isMobile ? 12 : 16,
-        childAspectRatio: isMobile ? 0.8 : 0.9,
+        crossAxisSpacing: isMobile ? 16 : 20,
+        mainAxisSpacing: isMobile ? 16 : 20,
+        childAspectRatio: isMobile ? 0.75 : 0.85,
       ),
       itemCount: achievements.length,
       itemBuilder: (context, index) {
@@ -326,14 +326,17 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             final animationValue =
                 (_staggerAnimation.value - delay).clamp(0.0, 1.0);
 
-            return Transform.scale(
-              scale: animationValue,
-              child: Opacity(
-                opacity: animationValue,
-                child: _buildAchievementCard(
-                    context, achievements[index], isMobile, isUnlocked),
-              ),
-            );
+            return
+                // Transform.scale(
+                // scale: animationValue,
+                // child: Opacity(
+                //   opacity: animationValue,
+                //   child:
+
+                _buildAchievementCard(
+                    context, achievements[index], isMobile, isUnlocked);
+            // ),
+            // );
           },
         );
       },
@@ -343,135 +346,292 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   Widget _buildAchievementCard(BuildContext context, Achievement achievement,
       bool isMobile, bool isUnlocked) {
     return Container(
-      padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
-        color: isUnlocked ? AppTheme.backgroundCard : AppTheme.surfaceElevated,
-        borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
-        border: Border.all(
-          color: isUnlocked
-              ? AppTheme.primaryGreen.withOpacity(0.3)
-              : Colors.grey.withOpacity(0.2),
-          width: isUnlocked ? 2 : 1,
-        ),
+        borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
         boxShadow: [
           BoxShadow(
             color: isUnlocked
-                ? AppTheme.primaryGreen.withOpacity(0.1)
-                : Colors.black.withOpacity(0.05),
-            blurRadius: isMobile ? 8 : 12,
-            offset: const Offset(0, 4),
+                ? AppTheme.primaryPurple.withOpacity(0.15)
+                : Colors.black.withOpacity(0.08),
+            blurRadius: isMobile ? 12 : 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Achievement Icon
-          Container(
-            padding: EdgeInsets.all(isMobile ? 16 : 20),
-            decoration: BoxDecoration(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: isUnlocked
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white,
+                      AppTheme.primaryPurple.withOpacity(0.05),
+                    ],
+                  )
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.grey[50]!,
+                      Colors.grey[100]!,
+                    ],
+                  ),
+            border: Border.all(
               color: isUnlocked
-                  ? AppTheme.primaryGreen.withOpacity(0.1)
-                  : Colors.grey.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              achievement.icon,
-              style: TextStyle(
-                fontSize: isMobile ? 32 : 40,
-                color: isUnlocked ? AppTheme.primaryGreen : Colors.grey,
-              ),
+                  ? AppTheme.primaryPurple.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.15),
+              width: 1.5,
             ),
           ),
-
-          SizedBox(height: isMobile ? 12 : 16),
-
-          // Achievement Title
-          Text(
-            achievement.title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: isUnlocked
-                      ? AppTheme.textPrimary
-                      : AppTheme.textSecondary,
-                  fontSize: isMobile ? 14 : 16,
-                ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          SizedBox(height: isMobile ? 8 : 12),
-
-          // Achievement Description
-          Text(
-            achievement.description,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isUnlocked ? AppTheme.textSecondary : Colors.grey,
-                  fontSize: isMobile ? 10 : 12,
-                ),
-            textAlign: TextAlign.center,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          SizedBox(height: isMobile ? 8 : 12),
-
-          // Points and Status
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Stack(
             children: [
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 6 : 8,
-                  vertical: isMobile ? 2 : 4,
+              // Background Pattern
+              if (isUnlocked)
+                Positioned(
+                  top: -20,
+                  right: -20,
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.primaryPurple.withOpacity(0.05),
+                    ),
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryPurple.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(isMobile ? 4 : 6),
-                ),
-                child: Text(
-                  '${achievement.points} XP',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.primaryPurple,
-                        fontWeight: FontWeight.w600,
-                        fontSize: isMobile ? 8 : 10,
+
+              // Main Content
+              Padding(
+                padding: EdgeInsets.all(isMobile ? 20 : 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Achievement Icon with Enhanced Design
+                    Container(
+                      width: isMobile ? 70 : 80,
+                      height: isMobile ? 70 : 80,
+                      decoration: BoxDecoration(
+                        gradient: isUnlocked
+                            ? LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppTheme.primaryPurple,
+                                  AppTheme.primaryPurple.withOpacity(0.8),
+                                ],
+                              )
+                            : LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.grey[400]!,
+                                  Colors.grey[500]!,
+                                ],
+                              ),
+                        borderRadius: BorderRadius.circular(isMobile ? 20 : 24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isUnlocked
+                                ? AppTheme.primaryPurple.withOpacity(0.3)
+                                : Colors.grey.withOpacity(0.3),
+                            blurRadius: isMobile ? 8 : 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
+                      child: Center(
+                        child: Text(
+                          achievement.icon,
+                          style: TextStyle(
+                            fontSize: isMobile ? 28 : 32,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: isMobile ? 16 : 20),
+
+                    // Achievement Title with Better Typography
+                    Text(
+                      achievement.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: isUnlocked
+                                ? AppTheme.textPrimary
+                                : Colors.grey[600],
+                            fontSize: isMobile ? 15 : 17,
+                            height: 1.2,
+                          ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    SizedBox(height: isMobile ? 8 : 12),
+
+                    // Achievement Description with Better Spacing
+                    Text(
+                      achievement.description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isUnlocked
+                                ? AppTheme.textSecondary
+                                : Colors.grey[500],
+                            fontSize: isMobile ? 11 : 13,
+                            height: 1.3,
+                          ),
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    SizedBox(height: isMobile ? 16 : 20),
+
+                    // Enhanced Points and Status Section
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 12 : 16,
+                        vertical: isMobile ? 8 : 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isUnlocked
+                            ? AppTheme.primaryPurple.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
+                        border: Border.all(
+                          color: isUnlocked
+                              ? AppTheme.primaryPurple.withOpacity(0.2)
+                              : Colors.grey.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // XP Points
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.stars,
+                                size: isMobile ? 14 : 16,
+                                color: isUnlocked
+                                    ? AppTheme.primaryPurple
+                                    : Colors.grey[600],
+                              ),
+                              // SizedBox(width: isMobile ? 4 : 6),
+                              Text(
+                                '${achievement.points} XP',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: isUnlocked
+                                          ? AppTheme.primaryPurple
+                                          : Colors.grey[600],
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: isMobile ? 8 : 13,
+                                    ),
+                              ),
+                            ],
+                          ),
+
+                          // Status Badge
+                          if (isUnlocked && achievement.unlockedAt != null)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isMobile ? 10 : 10,
+                                vertical: isMobile ? 4 : 6,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppTheme.primaryGreen,
+                                    AppTheme.primaryGreen.withOpacity(0.8),
+                                  ],
+                                ),
+                                borderRadius:
+                                    BorderRadius.circular(isMobile ? 8 : 10),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    size: isMobile ? 12 : 14,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(width: isMobile ? 4 : 6),
+                                  Text(
+                                    'Unlocked',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: isMobile ? 8 : 12,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    // Unlock Date
+                    if (isUnlocked && achievement.unlockedAt != null) ...[
+                      SizedBox(height: isMobile ? 8 : 12),
+                      Text(
+                        _formatUnlockDate(achievement.unlockedAt!),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppTheme.textSecondary,
+                              fontSize: isMobile ? 10 : 12,
+                              fontStyle: FontStyle.italic,
+                            ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              if (isUnlocked && achievement.unlockedAt != null)
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isMobile ? 6 : 8,
-                    vertical: isMobile ? 2 : 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryGreen.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(isMobile ? 4 : 6),
-                  ),
-                  child: Text(
-                    'Unlocked',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.primaryGreen,
-                          fontWeight: FontWeight.w600,
-                          fontSize: isMobile ? 8 : 10,
+
+              // Lock Overlay for Locked Achievements
+              if (!isUnlocked)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
+                    ),
+                    child: Center(
+                      child: Container(
+                        padding: EdgeInsets.all(isMobile ? 8 : 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
+                        child: Icon(
+                          Icons.lock,
+                          size: isMobile ? 20 : 24,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
             ],
           ),
-
-          if (isUnlocked && achievement.unlockedAt != null) ...[
-            SizedBox(height: isMobile ? 4 : 6),
-            Text(
-              _formatUnlockDate(achievement.unlockedAt!),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary,
-                    fontSize: isMobile ? 8 : 10,
-                  ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
