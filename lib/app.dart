@@ -8,7 +8,10 @@ import 'services/drill_session_service.dart';
 import 'services/session_history_service.dart';
 import 'services/gamification_service.dart';
 import 'services/difficulty_progression_service.dart';
+import 'services/auth_service.dart';
 import 'providers/enhanced_drill_provider.dart';
+import 'providers/auth_provider.dart';
+import 'features/auth/widgets/auth_wrapper.dart';
 
 class MathDrillApp extends StatelessWidget {
   const MathDrillApp({super.key});
@@ -34,8 +37,14 @@ class MathDrillApp extends StatelessWidget {
         Provider<DifficultyProgressionService>(
           create: (_) => DifficultyProgressionService(),
         ),
+        Provider<AuthService>(
+          create: (_) => AuthService(),
+        ),
 
         // Providers
+        ChangeNotifierProvider<AuthProvider>(
+          create: (context) => AuthProvider(),
+        ),
         ChangeNotifierProxyProvider2<MathQuestionService, DrillSessionService,
             EnhancedDrillProvider>(
           create: (context) => EnhancedDrillProvider(
@@ -54,44 +63,7 @@ class MathDrillApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Math Drill MVP',
         theme: AppTheme.lightTheme,
-        initialRoute: AppRoutes.splash,
-        routes: {
-          AppRoutes.splash: (context) => AppPages.splashPage(context),
-          AppRoutes.home: (context) => AppPages.homePage(context),
-          AppRoutes.addition: (context) => AppPages.additionPage(context),
-          AppRoutes.multiplication: (context) =>
-              AppPages.multiplicationPage(context),
-          AppRoutes.analytics: (context) => AppPages.analyticsPage(context),
-          AppRoutes.achievements: (context) =>
-              AppPages.achievementsPage(context),
-        },
-        onGenerateRoute: (settings) {
-          // Handle parameterized routes
-          if (settings.name == AppRoutes.drillRoute) {
-            final args = settings.arguments as Map<String, dynamic>?;
-            if (args != null) {
-              return MaterialPageRoute(
-                builder: (context) => AppPages.drillPage(
-                  context,
-                  operationType: args['operationType'],
-                  questionType: args['questionType'],
-                  difficultyLevel: args['difficultyLevel'],
-                  questionLimit: args['questionLimit'],
-                ),
-                settings: settings,
-              );
-            }
-          }
-
-          // Handle unknown routes
-          return MaterialPageRoute(
-            builder: (context) => AppPages.errorPage(
-              context,
-              'The requested page "${settings.name}" does not exist.',
-            ),
-            settings: settings,
-          );
-        },
+        home: const AuthWrapper(),
         debugShowCheckedModeBanner: false,
       ),
     );

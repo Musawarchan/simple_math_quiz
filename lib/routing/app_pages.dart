@@ -7,6 +7,8 @@ import '../features/addition_drill/view/addition_drill_view.dart';
 import '../features/multiplication_drill/view/multiplication_drill_view.dart';
 import '../features/analytics/view/analytics_dashboard.dart';
 import '../features/achievements/view/achievements_screen.dart';
+import '../features/auth/view/login_screen.dart';
+import '../features/auth/view/signup_screen.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -20,6 +22,8 @@ class AppPages {
       const AnalyticsDashboard();
   static Widget achievementsPage(BuildContext context) =>
       const AchievementsScreen();
+  static Widget loginPage(BuildContext context) => const LoginScreen();
+  static Widget signupPage(BuildContext context) => const SignupScreen();
 
   // Parameterized route builder
   static Widget drillPage(

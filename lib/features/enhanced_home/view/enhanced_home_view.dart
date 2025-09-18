@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/math_models.dart';
 import '../../../providers/enhanced_drill_provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../services/difficulty_progression_service.dart';
 import '../../../routing/app_routes.dart';
+import '../../auth/widgets/auth_wrapper.dart';
 
 class EnhancedHomeView extends StatefulWidget {
   const EnhancedHomeView({super.key});
@@ -101,6 +103,43 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
     super.dispose();
   }
 
+  Future<void> _handleLogout(BuildContext context) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Show confirmation dialog
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true) {
+      await authProvider.signOut();
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AuthWrapper()),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -109,6 +148,66 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'Math Drill',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
+              ),
+        ),
+        actions: [
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, child) {
+              return PopupMenuButton<String>(
+                icon: CircleAvatar(
+                  backgroundColor: AppTheme.primaryPurple,
+                  child: Text(
+                    authProvider.currentUser?.name
+                            .substring(0, 1)
+                            .toUpperCase() ??
+                        'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                onSelected: (value) async {
+                  if (value == 'logout') {
+                    await _handleLogout(context);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem<String>(
+                    value: 'profile',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.person_outline),
+                        const SizedBox(width: 8),
+                        Text(authProvider.currentUser?.name ?? 'User'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout),
+                        SizedBox(width: 8),
+                        Text('Logout'),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {

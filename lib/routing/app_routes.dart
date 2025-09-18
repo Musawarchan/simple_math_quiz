@@ -7,6 +7,8 @@ class AppRoutes {
   static const String drill = '/drill';
   static const String analytics = '/analytics';
   static const String achievements = '/achievements';
+  static const String login = '/login';
+  static const String signup = '/signup';
 
   // Named routes for MaterialApp
   static const String splashRoute = 'splash';
@@ -16,4 +18,6 @@ class AppRoutes {
   static const String drillRoute = 'drill';
   static const String analyticsRoute = 'analytics';
   static const String achievementsRoute = 'achievements';
+  static const String loginRoute = 'login';
+  static const String signupRoute = 'signup';
 }
