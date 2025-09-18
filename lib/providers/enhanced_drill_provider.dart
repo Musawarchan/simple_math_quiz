@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import '../data/models/math_models.dart';
+import '../data/models/progress_models.dart';
 import '../services/math_question_service.dart';
 import '../services/drill_session_service.dart';
+import '../services/session_history_service.dart';
+import '../services/gamification_service.dart';
 
 class EnhancedDrillProvider extends ChangeNotifier {
   final MathQuestionService _questionService;
   final DrillSessionService _sessionService;
+  final SessionHistoryService _historyService;
+  final GamificationService _gamificationService;
 
   EnhancedDrillProvider({
     required MathQuestionService questionService,
     required DrillSessionService sessionService,
   })  : _questionService = questionService,
-        _sessionService = sessionService;
+        _sessionService = sessionService,
+        _historyService = SessionHistoryService(),
+        _gamificationService = GamificationService(SessionHistoryService());
 
   DrillSession get session => _sessionService.session;
   MathQuestion? get currentQuestion => _sessionService.currentQuestion;
@@ -31,6 +38,12 @@ class EnhancedDrillProvider extends ChangeNotifier {
   bool _isSessionComplete = false;
   bool _shouldShowResultsPopup = false;
 
+  // Progress tracking
+  List<QuestionAttempt> _questionAttempts = [];
+  DateTime? _sessionStartTime;
+  int _sessionXP = 0;
+  List<AchievementType> _newAchievements = [];
+
   bool get isWaitingForAnswer => _isWaitingForAnswer;
   bool get showResult => _showResult;
   bool get isCorrect => _isCorrect;
@@ -41,6 +54,10 @@ class EnhancedDrillProvider extends ChangeNotifier {
   bool get isReadyToStart => _isReadyToStart;
   bool get showContinueButton => _showContinueButton;
   bool get shouldShowResultsPopup => _shouldShowResultsPopup;
+
+  // Progress tracking getters
+  int get sessionXP => _sessionXP;
+  List<AchievementType> get newAchievements => _newAchievements;
 
   void startSession({
     required OperationType operationType,
@@ -64,6 +81,12 @@ class EnhancedDrillProvider extends ChangeNotifier {
     _isCorrect = false;
     _resultMessage = '';
 
+    // Reset progress tracking
+    _questionAttempts = [];
+    _sessionStartTime = null;
+    _sessionXP = 0;
+    _newAchievements = [];
+
     _sessionService.startNewSession();
     // Don't generate question yet - wait for user to click "Start"
     notifyListeners();
@@ -75,6 +98,7 @@ class EnhancedDrillProvider extends ChangeNotifier {
     _showResult = false;
     _isCorrect = false;
     _resultMessage = '';
+    _sessionStartTime = DateTime.now();
     _generateNewQuestion();
   }
 
@@ -86,6 +110,7 @@ class EnhancedDrillProvider extends ChangeNotifier {
     if (_sessionService.session.totalQuestions >= _questionLimit) {
       _isSessionComplete = true;
       _shouldShowResultsPopup = true; // Set flag to show popup
+      _saveSessionAndUpdateProgress();
       notifyListeners();
       return;
     }
@@ -109,13 +134,6 @@ class EnhancedDrillProvider extends ChangeNotifier {
     _resultMessage = '';
 
     notifyListeners();
-
-    // Ensure timer starts properly with a small delay
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_isWaitingForAnswer) {
-        notifyListeners();
-      }
-    });
   }
 
   void submitAnswer(int answer) {
@@ -126,6 +144,23 @@ class EnhancedDrillProvider extends ChangeNotifier {
     _isWaitingForAnswer = false;
     _showResult = true;
     _showContinueButton = true;
+
+    // Track question attempt
+    if (currentQuestion != null) {
+      final attempt = QuestionAttempt(
+        operand1: currentQuestion!.operand1,
+        operand2: currentQuestion!.operand2,
+        operation: currentQuestion!.operation,
+        correctAnswer: correctAnswer,
+        userAnswer: answer,
+        isCorrect: _isCorrect,
+        timeSpent: Duration(
+            milliseconds:
+                3000), // Default time, could be improved with actual timing
+        difficultyLevel: currentQuestion!.difficultyLevel,
+      );
+      _questionAttempts.add(attempt);
+    }
 
     if (_isCorrect) {
       _resultMessage = 'Correct! 🎉';
@@ -181,5 +216,50 @@ class EnhancedDrillProvider extends ChangeNotifier {
     _isCorrect = false;
     _resultMessage = '';
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    // Clean up any resources
+    super.dispose();
+  }
+
+  Future<void> _saveSessionAndUpdateProgress() async {
+    if (_sessionStartTime == null) return;
+
+    try {
+      // Create session record
+      final sessionRecord = SessionRecord(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        timestamp: _sessionStartTime!,
+        operationType: _currentOperationType,
+        questionType: _currentQuestionType,
+        difficultyLevel: _currentDifficultyLevel,
+        totalQuestions: _sessionService.session.totalQuestions,
+        correctAnswers: _sessionService.session.correctAnswers,
+        score: _sessionService.session.score,
+        accuracy: _sessionService.session.accuracy,
+        totalTime: DateTime.now().difference(_sessionStartTime!),
+        questionAttempts: _questionAttempts,
+      );
+
+      // Save session to history
+      await _historyService.saveSession(sessionRecord);
+
+      // Update user profile and check achievements
+      final updatedProfile =
+          await _gamificationService.updateProfileWithSession(sessionRecord);
+      _sessionXP = updatedProfile.totalXP -
+          (updatedProfile.totalXP -
+              await _gamificationService.calculateSessionXP(sessionRecord));
+
+      // Check for new achievements
+      final newAchievements =
+          await _gamificationService.checkAchievements(sessionRecord);
+      _newAchievements = newAchievements;
+    } catch (e) {
+      // Handle error silently for now
+      print('Error saving session: $e');
+    }
   }
 }

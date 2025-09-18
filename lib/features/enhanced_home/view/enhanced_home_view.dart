@@ -139,6 +139,14 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
                       child: _buildInstructionsCard(context, isMobile),
                     ),
 
+                    SizedBox(height: isMobile ? 20 : 30),
+
+                    // Progress & Achievements Section
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: _buildProgressSection(context, isMobile),
+                    ),
+
                     SizedBox(height: isMobile ? 16 : 20),
                   ],
                 ),
@@ -219,10 +227,29 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
         ),
         _buildOption(
           context,
+          'Subtraction',
+          Icons.remove_circle_outline,
+          AppTheme.warningGradient,
+          OperationType.subtraction,
+          isMobile,
+        ),
+        _buildOption(
+          context,
           'Multiplication',
           Icons.close_rounded,
           AppTheme.primaryGradient,
           OperationType.multiplication,
+          isMobile,
+        ),
+        _buildOption(
+          context,
+          'Division',
+          Icons.percent_outlined,
+          LinearGradient(colors: [
+            AppTheme.primaryBlue,
+            AppTheme.primaryBlue.withOpacity(0.7)
+          ]),
+          OperationType.division,
           isMobile,
         ),
       ],
@@ -261,31 +288,49 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
       context,
       'Difficulty Level',
       [
-        _buildOption(
+        _buildDifficultyOption(
           context,
-          'Easy (5s)',
+          'Beginner',
+          'Numbers 0-3, 8s timer',
+          Icons.child_care_outlined,
+          const Color(0xFF4CAF50), // Green
+          DifficultyLevel.beginner,
+          isMobile,
+        ),
+        _buildDifficultyOption(
+          context,
+          'Easy',
+          'Numbers 0-5, 5s timer',
           Icons.sentiment_satisfied_outlined,
-          LinearGradient(
-              colors: [AppTheme.success, AppTheme.success.withOpacity(0.7)]),
+          const Color(0xFF8BC34A), // Light Green
           DifficultyLevel.easy,
           isMobile,
         ),
-        _buildOption(
+        _buildDifficultyOption(
           context,
-          'Medium (3s)',
+          'Medium',
+          'Numbers 0-7, 3s timer',
           Icons.sentiment_neutral_outlined,
-          LinearGradient(
-              colors: [AppTheme.warning, AppTheme.warning.withOpacity(0.7)]),
+          const Color(0xFFFF9800), // Orange
           DifficultyLevel.medium,
           isMobile,
         ),
-        _buildOption(
+        _buildDifficultyOption(
           context,
-          'Hard (2s)',
+          'Hard',
+          'Numbers 0-9, 2s timer',
           Icons.sentiment_dissatisfied_outlined,
-          LinearGradient(
-              colors: [AppTheme.error, AppTheme.error.withOpacity(0.7)]),
+          const Color(0xFFF44336), // Red
           DifficultyLevel.hard,
+          isMobile,
+        ),
+        _buildDifficultyOption(
+          context,
+          'Expert',
+          'Numbers 0-12, 1s timer',
+          Icons.psychology_outlined,
+          const Color(0xFF9C27B0), // Purple
+          DifficultyLevel.expert,
           isMobile,
         ),
       ],
@@ -467,6 +512,100 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
     );
   }
 
+  Widget _buildDifficultyOption(
+    BuildContext context,
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+    DifficultyLevel value,
+    bool isMobile,
+  ) {
+    final isSelected = _selectedDifficulty == value;
+    final gradient = LinearGradient(
+      colors: [color, color.withOpacity(0.7)],
+    );
+
+    return Container(
+      margin: EdgeInsets.only(bottom: isMobile ? 8 : 12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _setSelectedValue(value),
+          borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
+            decoration: BoxDecoration(
+              gradient: isSelected ? gradient : null,
+              color: isSelected ? null : AppTheme.surfaceElevated,
+              borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
+              border: Border.all(
+                color: isSelected
+                    ? Colors.transparent
+                    : Colors.grey.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(isMobile ? 8 : 12),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withOpacity(0.2)
+                        : color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: isMobile ? 20 : 24,
+                    color: isSelected ? Colors.white : color,
+                  ),
+                ),
+                SizedBox(width: isMobile ? 12 : 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppTheme.textPrimary,
+                                  fontSize: isMobile ? 14 : 16,
+                                ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        description,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isSelected
+                                  ? Colors.white.withOpacity(0.8)
+                                  : AppTheme.textSecondary,
+                              fontSize: isMobile ? 11 : 12,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  Icon(
+                    Icons.check_circle,
+                    color: Colors.white,
+                    size: isMobile ? 20 : 24,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildStartButton(BuildContext context, bool isMobile) {
     return SizedBox(
       width: double.infinity,
@@ -556,7 +695,7 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
             context,
             '⏱️',
             'Answer within the time limit',
-            'Easy: 5s, Medium: 3s, Hard: 2s',
+            'Beginner: 8s, Easy: 5s, Medium: 3s, Hard: 2s, Expert: 1s',
             isMobile,
           ),
           SizedBox(height: isMobile ? 8 : 12),
@@ -644,6 +783,138 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
         'difficultyLevel': _selectedDifficulty,
         'questionLimit': _selectedQuestionLimit,
       },
+    );
+  }
+
+  Widget _buildProgressSection(BuildContext context, bool isMobile) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 20 : 24),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundCard,
+        borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: isMobile ? 12 : 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isMobile ? 6 : 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryPurple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(isMobile ? 6 : 8),
+                ),
+                child: Icon(
+                  Icons.trending_up,
+                  color: AppTheme.primaryPurple,
+                  size: isMobile ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: isMobile ? 8 : 12),
+              Text(
+                'Track Your Progress',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                      fontSize: isMobile ? 16 : 18,
+                    ),
+              ),
+            ],
+          ),
+          SizedBox(height: isMobile ? 16 : 20),
+          Row(
+            children: [
+              Expanded(
+                child: _buildProgressButton(
+                  context,
+                  'Analytics',
+                  Icons.analytics_outlined,
+                  AppTheme.primaryBlue,
+                  () => Navigator.pushNamed(context, AppRoutes.analytics),
+                  isMobile,
+                ),
+              ),
+              SizedBox(width: isMobile ? 12 : 16),
+              Expanded(
+                child: _buildProgressButton(
+                  context,
+                  'Achievements',
+                  Icons.emoji_events_outlined,
+                  AppTheme.primaryOrange,
+                  () => Navigator.pushNamed(context, AppRoutes.achievements),
+                  isMobile,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressButton(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+    bool isMobile,
+  ) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
+        child: Container(
+          padding: EdgeInsets.all(isMobile ? 16 : 20),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
+            border: Border.all(
+              color: color.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isMobile ? 12 : 16),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: isMobile ? 24 : 28,
+                ),
+              ),
+              SizedBox(height: isMobile ? 8 : 12),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                      fontSize: isMobile ? 14 : 16,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

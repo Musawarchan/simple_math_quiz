@@ -433,12 +433,16 @@ class _EnhancedDrillViewState extends State<EnhancedDrillView> {
 
   Color _getDifficultyColor(DifficultyLevel difficulty) {
     switch (difficulty) {
+      case DifficultyLevel.beginner:
+        return const Color(0xFF4CAF50); // Green
       case DifficultyLevel.easy:
         return AppTheme.success;
       case DifficultyLevel.medium:
         return AppTheme.warning;
       case DifficultyLevel.hard:
         return AppTheme.error;
+      case DifficultyLevel.expert:
+        return const Color(0xFF9C27B0); // Purple
     }
   }
 

@@ -5,6 +5,8 @@ import 'routing/app_pages.dart';
 import 'routing/app_routes.dart';
 import 'services/math_question_service.dart';
 import 'services/drill_session_service.dart';
+import 'services/session_history_service.dart';
+import 'services/gamification_service.dart';
 import 'providers/enhanced_drill_provider.dart';
 
 class MathDrillApp extends StatelessWidget {
@@ -20,6 +22,13 @@ class MathDrillApp extends StatelessWidget {
         ),
         Provider<DrillSessionService>(
           create: (_) => DrillSessionService(),
+        ),
+        Provider<SessionHistoryService>(
+          create: (_) => SessionHistoryService(),
+        ),
+        Provider<GamificationService>(
+          create: (context) =>
+              GamificationService(context.read<SessionHistoryService>()),
         ),
 
         // Providers
@@ -48,6 +57,9 @@ class MathDrillApp extends StatelessWidget {
           AppRoutes.addition: (context) => AppPages.additionPage(context),
           AppRoutes.multiplication: (context) =>
               AppPages.multiplicationPage(context),
+          AppRoutes.analytics: (context) => AppPages.analyticsPage(context),
+          AppRoutes.achievements: (context) =>
+              AppPages.achievementsPage(context),
         },
         onGenerateRoute: (settings) {
           // Handle parameterized routes

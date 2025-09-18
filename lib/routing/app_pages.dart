@@ -5,6 +5,8 @@ import '../features/enhanced_home/view/enhanced_home_view.dart';
 import '../features/enhanced_drill/view/enhanced_drill_view.dart';
 import '../features/addition_drill/view/addition_drill_view.dart';
 import '../features/multiplication_drill/view/multiplication_drill_view.dart';
+import '../features/analytics/view/analytics_dashboard.dart';
+import '../features/achievements/view/achievements_screen.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -14,6 +16,10 @@ class AppPages {
   static Widget additionPage(BuildContext context) => const AdditionDrillView();
   static Widget multiplicationPage(BuildContext context) =>
       const MultiplicationDrillView();
+  static Widget analyticsPage(BuildContext context) =>
+      const AnalyticsDashboard();
+  static Widget achievementsPage(BuildContext context) =>
+      const AchievementsScreen();
 
   // Parameterized route builder
   static Widget drillPage(

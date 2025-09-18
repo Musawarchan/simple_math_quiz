@@ -30,7 +30,40 @@ class _TimerWidgetState extends State<TimerWidget>
   void initState() {
     super.initState();
     _remainingSeconds = widget.durationSeconds;
+    _initializeController();
 
+    // Start timer if widget is active
+    if (widget.isActive) {
+      _startTimer();
+    }
+  }
+
+  @override
+  void didUpdateWidget(TimerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // If duration changed, reset the controller
+    if (widget.durationSeconds != oldWidget.durationSeconds) {
+      // Properly dispose and recreate controller
+      _controller.dispose();
+      _remainingSeconds = widget.durationSeconds;
+      _initializeController();
+
+      // Start timer if widget is active
+      if (widget.isActive) {
+        _startTimer();
+      }
+    }
+
+    // Handle active state changes
+    if (widget.isActive && !oldWidget.isActive) {
+      _startTimer();
+    } else if (!widget.isActive && oldWidget.isActive) {
+      _stopTimer();
+    }
+  }
+
+  void _initializeController() {
     _controller = AnimationController(
       duration: Duration(seconds: widget.durationSeconds),
       vsync: this,
@@ -62,78 +95,14 @@ class _TimerWidgetState extends State<TimerWidget>
       final remaining =
           (widget.durationSeconds * (1 - _controller.value)).round();
       if (remaining != _remainingSeconds) {
-        setState(() {
-          _remainingSeconds = remaining;
-        });
-        widget.onTick();
-      }
-    });
-
-    // Start timer if widget is active
-    if (widget.isActive) {
-      _startTimer();
-    }
-  }
-
-  @override
-  void didUpdateWidget(TimerWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    // If duration changed, reset the controller
-    if (widget.durationSeconds != oldWidget.durationSeconds) {
-      _controller.dispose();
-      _remainingSeconds = widget.durationSeconds;
-
-      _controller = AnimationController(
-        duration: Duration(seconds: widget.durationSeconds),
-        vsync: this,
-      );
-
-      _animation = Tween<double>(
-        begin: 1.0,
-        end: 0.0,
-      ).animate(CurvedAnimation(
-        parent: _controller,
-        curve: Curves.linear,
-      ));
-
-      _pulseAnimation = Tween<double>(
-        begin: 1.0,
-        end: 1.1,
-      ).animate(CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ));
-
-      _controller.addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          widget.onTimeUp();
-        }
-      });
-
-      _controller.addListener(() {
-        final remaining =
-            (widget.durationSeconds * (1 - _controller.value)).round();
-        if (remaining != _remainingSeconds) {
+        if (mounted) {
           setState(() {
             _remainingSeconds = remaining;
           });
           widget.onTick();
         }
-      });
-
-      // Start timer if widget is active
-      if (widget.isActive) {
-        _startTimer();
       }
-    }
-
-    // Handle active state changes
-    if (widget.isActive && !oldWidget.isActive) {
-      _startTimer();
-    } else if (!widget.isActive && oldWidget.isActive) {
-      _stopTimer();
-    }
+    });
   }
 
   void _startTimer() {
