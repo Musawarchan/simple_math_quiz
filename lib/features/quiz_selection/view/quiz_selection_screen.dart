@@ -61,223 +61,467 @@ class _QuizSelectionScreenState extends State<QuizSelectionScreen> {
               ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Difficulty Selection
-            _buildSectionCard(
-              title: 'Select Difficulty',
-              icon: Icons.trending_up,
-              child: Column(
-                children: DifficultyLevel.values.map((level) {
-                  final isUnlocked = _unlockedLevels[level] ?? false;
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: isUnlocked ? Colors.white : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isUnlocked
-                            ? Theme.of(context).primaryColor.withOpacity(0.2)
-                            : Colors.grey[300]!,
+      body:
+          // Consumer<DifficultyProgressionService>(
+          //   builder: (context, progressionService, child) {
+          //     return FutureBuilder<Map<DifficultyLevel, bool>>(
+          //       future: progressionService.getProgressionState(),
+          //       builder: (context, snapshot) {
+          //         final unlockedLevels = snapshot.data ?? _unlockedLevels;
+
+          Consumer<DifficultyProgressionService>(
+              builder: (context, progressionService, child) {
+        {
+          return FutureBuilder<Map<DifficultyLevel, bool>>(
+            future: progressionService.getProgressionState(),
+            builder: (context, snapshot) {
+              final unlockedLevels = snapshot.data ?? _unlockedLevels;
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Difficulty Selection
+                    _buildSectionCard(
+                      title: 'Select Difficulty',
+                      icon: Icons.trending_up,
+                      child: Column(
+                        children: DifficultyLevel.values.map((level) {
+                          final isUnlocked = _unlockedLevels[level] ?? false;
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color:
+                                  isUnlocked ? Colors.white : Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isUnlocked
+                                    ? Theme.of(context)
+                                        .primaryColor
+                                        .withOpacity(0.2)
+                                    : Colors.grey[300]!,
+                              ),
+                            ),
+                            child: RadioListTile<DifficultyLevel>(
+                              title: Row(
+                                children: [
+                                  Text(
+                                    level.name.toUpperCase(),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: isUnlocked
+                                          ? Colors.grey[800]
+                                          : Colors.grey[500],
+                                    ),
+                                  ),
+                                  if (!isUnlocked) ...[
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.lock,
+                                      size: 16,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              subtitle: Text(
+                                _getDifficultyDescription(level),
+                                style: TextStyle(
+                                  color: isUnlocked
+                                      ? Colors.grey[600]
+                                      : Colors.grey[400],
+                                  fontSize: 12,
+                                ),
+                              ),
+                              value: level,
+                              groupValue: _selectedDifficulty,
+                              onChanged: isUnlocked
+                                  ? (DifficultyLevel? value) {
+                                      setState(() {
+                                        _selectedDifficulty = value;
+                                      });
+                                    }
+                                  : null,
+                              activeColor: Theme.of(context).primaryColor,
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
-                    child: RadioListTile<DifficultyLevel>(
-                      title: Row(
+                    const SizedBox(height: 20),
+
+                    // Operation Selection
+                    _buildSectionCard(
+                      title: 'Select Operation',
+                      icon: Icons.calculate,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: OperationType.values.map((operation) {
+                          return FilterChip(
+                            label: Text(_getOperationName(operation)),
+                            selected: _selectedOperation == operation,
+                            onSelected: (bool selected) {
+                              setState(() {
+                                _selectedOperation = operation;
+                              });
+                            },
+                            selectedColor:
+                                Theme.of(context).primaryColor.withOpacity(0.2),
+                            checkmarkColor: Theme.of(context).primaryColor,
+                            backgroundColor: Colors.white,
+                            side: BorderSide(
+                              color: _selectedOperation == operation
+                                  ? Theme.of(context).primaryColor
+                                  : Colors.grey[300]!,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Question Type Selection
+                    _buildSectionCard(
+                      title: 'Question Type',
+                      icon: Icons.quiz,
+                      child: Row(
                         children: [
-                          Text(
-                            level.name.toUpperCase(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: isUnlocked
-                                  ? Colors.grey[800]
-                                  : Colors.grey[500],
+                          Expanded(
+                            child: _buildQuestionTypeCard(
+                              title: 'Fill in Blank',
+                              subtitle: 'Type your answer',
+                              icon: Icons.edit,
+                              isSelected: _selectedQuestionType ==
+                                  QuestionType.fillInBlank,
+                              onTap: () {
+                                setState(() {
+                                  _selectedQuestionType =
+                                      QuestionType.fillInBlank;
+                                });
+                              },
                             ),
                           ),
-                          if (!isUnlocked) ...[
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.lock,
-                              size: 16,
-                              color: Colors.grey[500],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildQuestionTypeCard(
+                              title: 'Multiple Choice',
+                              subtitle: 'Choose from options',
+                              icon: Icons.radio_button_checked,
+                              isSelected: _selectedQuestionType ==
+                                  QuestionType.multipleChoice,
+                              onTap: () {
+                                setState(() {
+                                  _selectedQuestionType =
+                                      QuestionType.multipleChoice;
+                                });
+                              },
                             ),
-                          ],
+                          ),
                         ],
                       ),
-                      subtitle: Text(
-                        _getDifficultyDescription(level),
-                        style: TextStyle(
-                          color:
-                              isUnlocked ? Colors.grey[600] : Colors.grey[400],
-                          fontSize: 12,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Question Count Selection
+                    _buildSectionCard(
+                      title: 'Number of Questions',
+                      icon: Icons.numbers,
+                      child: Column(
+                        children: [
+                          Text(
+                            '$_questionCount Questions',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Slider(
+                            value: _questionCount.toDouble(),
+                            min: 5,
+                            max: 50,
+                            divisions: 9,
+                            label: '$_questionCount',
+                            activeColor: Theme.of(context).primaryColor,
+                            inactiveColor: Colors.grey[300],
+                            onChanged: (double value) {
+                              setState(() {
+                                _questionCount = value.round();
+                              });
+                            },
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('5',
+                                  style: TextStyle(
+                                      color: Colors.grey[600], fontSize: 12)),
+                              Text('50',
+                                  style: TextStyle(
+                                      color: Colors.grey[600], fontSize: 12)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Start Quiz Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _canStartQuiz() ? _startQuiz : null,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.play_arrow, size: 24),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Start Quiz',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
                         ),
                       ),
-                      value: level,
-                      groupValue: _selectedDifficulty,
-                      onChanged: isUnlocked
-                          ? (DifficultyLevel? value) {
-                              setState(() {
-                                _selectedDifficulty = value;
-                              });
-                            }
-                          : null,
-                      activeColor: Theme.of(context).primaryColor,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Operation Selection
-            _buildSectionCard(
-              title: 'Select Operation',
-              icon: Icons.calculate,
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: OperationType.values.map((operation) {
-                  return FilterChip(
-                    label: Text(_getOperationName(operation)),
-                    selected: _selectedOperation == operation,
-                    onSelected: (bool selected) {
-                      setState(() {
-                        _selectedOperation = operation;
-                      });
-                    },
-                    selectedColor:
-                        Theme.of(context).primaryColor.withOpacity(0.2),
-                    checkmarkColor: Theme.of(context).primaryColor,
-                    backgroundColor: Colors.white,
-                    side: BorderSide(
-                      color: _selectedOperation == operation
-                          ? Theme.of(context).primaryColor
-                          : Colors.grey[300]!,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Question Type Selection
-            _buildSectionCard(
-              title: 'Question Type',
-              icon: Icons.quiz,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildQuestionTypeCard(
-                      title: 'Fill in Blank',
-                      subtitle: 'Type your answer',
-                      icon: Icons.edit,
-                      isSelected:
-                          _selectedQuestionType == QuestionType.fillInBlank,
-                      onTap: () {
-                        setState(() {
-                          _selectedQuestionType = QuestionType.fillInBlank;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildQuestionTypeCard(
-                      title: 'Multiple Choice',
-                      subtitle: 'Choose from options',
-                      icon: Icons.radio_button_checked,
-                      isSelected:
-                          _selectedQuestionType == QuestionType.multipleChoice,
-                      onTap: () {
-                        setState(() {
-                          _selectedQuestionType = QuestionType.multipleChoice;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Question Count Selection
-            _buildSectionCard(
-              title: 'Number of Questions',
-              icon: Icons.numbers,
-              child: Column(
-                children: [
-                  Text(
-                    '$_questionCount Questions',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Slider(
-                    value: _questionCount.toDouble(),
-                    min: 5,
-                    max: 50,
-                    divisions: 9,
-                    label: '$_questionCount',
-                    activeColor: Theme.of(context).primaryColor,
-                    inactiveColor: Colors.grey[300],
-                    onChanged: (double value) {
-                      setState(() {
-                        _questionCount = value.round();
-                      });
-                    },
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('5',
-                          style:
-                              TextStyle(color: Colors.grey[600], fontSize: 12)),
-                      Text('50',
-                          style:
-                              TextStyle(color: Colors.grey[600], fontSize: 12)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // Start Quiz Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _canStartQuiz() ? _startQuiz : null,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 2,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.play_arrow, size: 24),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Start Quiz',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
+              );
+            },
+          );
+        }
+      }
+              // child: SingleChildScrollView(
+              //   padding: const EdgeInsets.all(20),
+              //   child: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       // Difficulty Selection
+              //       _buildSectionCard(
+              //         title: 'Select Difficulty',
+              //         icon: Icons.trending_up,
+              //         child: Column(
+              //           children: DifficultyLevel.values.map((level) {
+              //             final isUnlocked = _unlockedLevels[level] ?? false;
+              //             return Container(
+              //               margin: const EdgeInsets.only(bottom: 8),
+              //               decoration: BoxDecoration(
+              //                 color: isUnlocked ? Colors.white : Colors.grey[100],
+              //                 borderRadius: BorderRadius.circular(12),
+              //                 border: Border.all(
+              //                   color: isUnlocked
+              //                       ? Theme.of(context).primaryColor.withOpacity(0.2)
+              //                       : Colors.grey[300]!,
+              //                 ),
+              //               ),
+              //               child: RadioListTile<DifficultyLevel>(
+              //                 title: Row(
+              //                   children: [
+              //                     Text(
+              //                       level.name.toUpperCase(),
+              //                       style: TextStyle(
+              //                         fontWeight: FontWeight.w600,
+              //                         color: isUnlocked
+              //                             ? Colors.grey[800]
+              //                             : Colors.grey[500],
+              //                       ),
+              //                     ),
+              //                     if (!isUnlocked) ...[
+              //                       const SizedBox(width: 8),
+              //                       Icon(
+              //                         Icons.lock,
+              //                         size: 16,
+              //                         color: Colors.grey[500],
+              //                       ),
+              //                     ],
+              //                   ],
+              //                 ),
+              //                 subtitle: Text(
+              //                   _getDifficultyDescription(level),
+              //                   style: TextStyle(
+              //                     color:
+              //                         isUnlocked ? Colors.grey[600] : Colors.grey[400],
+              //                     fontSize: 12,
+              //                   ),
+              //                 ),
+              //                 value: level,
+              //                 groupValue: _selectedDifficulty,
+              //                 onChanged: isUnlocked
+              //                     ? (DifficultyLevel? value) {
+              //                         setState(() {
+              //                           _selectedDifficulty = value;
+              //                         });
+              //                       }
+              //                     : null,
+              //                 activeColor: Theme.of(context).primaryColor,
+              //               ),
+              //             );
+              //           }).toList(),
+              //         ),
+              //       ),
+              //       const SizedBox(height: 20),
+
+              //       // Operation Selection
+              //       _buildSectionCard(
+              //         title: 'Select Operation',
+              //         icon: Icons.calculate,
+              //         child: Wrap(
+              //           spacing: 8,
+              //           runSpacing: 8,
+              //           children: OperationType.values.map((operation) {
+              //             return FilterChip(
+              //               label: Text(_getOperationName(operation)),
+              //               selected: _selectedOperation == operation,
+              //               onSelected: (bool selected) {
+              //                 setState(() {
+              //                   _selectedOperation = operation;
+              //                 });
+              //               },
+              //               selectedColor:
+              //                   Theme.of(context).primaryColor.withOpacity(0.2),
+              //               checkmarkColor: Theme.of(context).primaryColor,
+              //               backgroundColor: Colors.white,
+              //               side: BorderSide(
+              //                 color: _selectedOperation == operation
+              //                     ? Theme.of(context).primaryColor
+              //                     : Colors.grey[300]!,
+              //               ),
+              //             );
+              //           }).toList(),
+              //         ),
+              //       ),
+              //       const SizedBox(height: 20),
+
+              //       // Question Type Selection
+              //       _buildSectionCard(
+              //         title: 'Question Type',
+              //         icon: Icons.quiz,
+              //         child: Row(
+              //           children: [
+              //             Expanded(
+              //               child: _buildQuestionTypeCard(
+              //                 title: 'Fill in Blank',
+              //                 subtitle: 'Type your answer',
+              //                 icon: Icons.edit,
+              //                 isSelected:
+              //                     _selectedQuestionType == QuestionType.fillInBlank,
+              //                 onTap: () {
+              //                   setState(() {
+              //                     _selectedQuestionType = QuestionType.fillInBlank;
+              //                   });
+              //                 },
+              //               ),
+              //             ),
+              //             const SizedBox(width: 12),
+              //             Expanded(
+              //               child: _buildQuestionTypeCard(
+              //                 title: 'Multiple Choice',
+              //                 subtitle: 'Choose from options',
+              //                 icon: Icons.radio_button_checked,
+              //                 isSelected:
+              //                     _selectedQuestionType == QuestionType.multipleChoice,
+              //                 onTap: () {
+              //                   setState(() {
+              //                     _selectedQuestionType = QuestionType.multipleChoice;
+              //                   });
+              //                 },
+              //               ),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //       const SizedBox(height: 20),
+
+              //       // Question Count Selection
+              //       _buildSectionCard(
+              //         title: 'Number of Questions',
+              //         icon: Icons.numbers,
+              //         child: Column(
+              //           children: [
+              //             Text(
+              //               '$_questionCount Questions',
+              //               style: TextStyle(
+              //                 fontSize: 20,
+              //                 fontWeight: FontWeight.bold,
+              //                 color: Theme.of(context).primaryColor,
+              //               ),
+              //             ),
+              //             const SizedBox(height: 16),
+              //             Slider(
+              //               value: _questionCount.toDouble(),
+              //               min: 5,
+              //               max: 50,
+              //               divisions: 9,
+              //               label: '$_questionCount',
+              //               activeColor: Theme.of(context).primaryColor,
+              //               inactiveColor: Colors.grey[300],
+              //               onChanged: (double value) {
+              //                 setState(() {
+              //                   _questionCount = value.round();
+              //                 });
+              //               },
+              //             ),
+              //             Row(
+              //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //               children: [
+              //                 Text('5',
+              //                     style:
+              //                         TextStyle(color: Colors.grey[600], fontSize: 12)),
+              //                 Text('50',
+              //                     style:
+              //                         TextStyle(color: Colors.grey[600], fontSize: 12)),
+              //               ],
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //       const SizedBox(height: 32),
+
+              //       // Start Quiz Button
+              //       SizedBox(
+              //         width: double.infinity,
+              //         child: ElevatedButton(
+              //           onPressed: _canStartQuiz() ? _startQuiz : null,
+              //           style: ElevatedButton.styleFrom(
+              //             padding: const EdgeInsets.symmetric(vertical: 18),
+              //             backgroundColor: Theme.of(context).primaryColor,
+              //             foregroundColor: Colors.white,
+              //             shape: RoundedRectangleBorder(
+              //               borderRadius: BorderRadius.circular(16),
+              //             ),
+              //             elevation: 2,
+              //           ),
+              //           child: Row(
+              //             mainAxisAlignment: MainAxisAlignment.center,
+              //             children: [
+              //               const Icon(Icons.play_arrow, size: 24),
+              //               const SizedBox(width: 8),
+              //               const Text(
+              //                 'Start Quiz',
+              //                 style:
+              //                     TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              //               ),
+              //             ],
+              //           ),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
               ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
