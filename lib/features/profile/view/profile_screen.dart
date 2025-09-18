@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mvp_app/features/analytics/view/analytics_dashboard.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/auth_provider.dart';
@@ -60,10 +61,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: Text(
           'Profile',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -108,8 +105,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                   text: 'Profile',
                 ),
                 Tab(
-                  icon: Icon(Icons.trending_up, size: 20),
-                  text: 'Progress',
+                  icon: Icon(Icons.analytics_outlined, size: 20),
+                  text: 'Analytics',
                 ),
                 Tab(
                   icon: Icon(Icons.lock_outline, size: 20),
@@ -130,7 +127,8 @@ class _ProfileScreenState extends State<ProfileScreen>
           controller: _tabController,
           children: const [
             UserInfoTab(),
-            ProgressTrackingTab(),
+            // ProgressTrackingTab(),
+            AnalyticsDashboard(),
             DifficultyProgressionTab(),
             SettingsTab(),
           ],

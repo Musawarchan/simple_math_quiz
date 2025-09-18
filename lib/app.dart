@@ -11,7 +11,7 @@ import 'services/difficulty_progression_service.dart';
 import 'services/auth_service.dart';
 import 'providers/enhanced_drill_provider.dart';
 import 'providers/auth_provider.dart';
-import 'features/auth/widgets/auth_wrapper.dart';
+import 'features/navigation/view/main_navigation_wrapper.dart';
 
 class MathDrillApp extends StatelessWidget {
   const MathDrillApp({super.key});
@@ -34,7 +34,7 @@ class MathDrillApp extends StatelessWidget {
           create: (context) =>
               GamificationService(context.read<SessionHistoryService>()),
         ),
-        Provider<DifficultyProgressionService>(
+        ChangeNotifierProvider<DifficultyProgressionService>(
           create: (_) => DifficultyProgressionService(),
         ),
         Provider<AuthService>(
@@ -63,8 +63,7 @@ class MathDrillApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Math Drill MVP',
         theme: AppTheme.lightTheme,
-        home: const AuthWrapper(),
-     
+        home: const MainNavigationWrapper(),
         routes: {
           AppRoutes.addition: (context) => AppPages.additionPage(context),
           AppRoutes.multiplication: (context) =>

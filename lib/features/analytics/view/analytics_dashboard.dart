@@ -115,33 +115,33 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard>
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Progress Dashboard',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
-                fontSize: isMobile ? 16 : 18,
-              ),
-        ),
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceElevated,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 18,
-              color: AppTheme.textPrimary,
-            ),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Colors.transparent,
+      //   elevation: 0,
+      //   title: Text(
+      //     'Progress Dashboard',
+      //     style: Theme.of(context).textTheme.titleLarge?.copyWith(
+      //           fontWeight: FontWeight.w600,
+      //           color: AppTheme.textPrimary,
+      //           fontSize: isMobile ? 16 : 18,
+      //         ),
+      //   ),
+      //   // leading: IconButton(
+      //   //   icon: Container(
+      //   //     padding: const EdgeInsets.all(8),
+      //   //     decoration: BoxDecoration(
+      //   //       color: AppTheme.surfaceElevated,
+      //   //       borderRadius: BorderRadius.circular(12),
+      //   //     ),
+      //   //     child: Icon(
+      //   //       Icons.arrow_back_ios_new_rounded,
+      //   //       size: 18,
+      //   //       color: AppTheme.textPrimary,
+      //   //     ),
+      //   //   ),
+      //   //   onPressed: () => Navigator.pop(context),
+      //   // ),
+      // ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(padding),

@@ -114,21 +114,21 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 fontSize: isMobile ? 16 : 18,
               ),
         ),
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceElevated,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 18,
-              color: AppTheme.textPrimary,
-            ),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
+        // leading: IconButton(
+        //   icon: Container(
+        //     padding: const EdgeInsets.all(8),
+        //     decoration: BoxDecoration(
+        //       color: AppTheme.surfaceElevated,
+        //       borderRadius: BorderRadius.circular(12),
+        //     ),
+        //     child: Icon(
+        //       Icons.arrow_back_ios_new_rounded,
+        //       size: 18,
+        //       color: AppTheme.textPrimary,
+        //     ),
+        //   ),
+        //   onPressed: () => Navigator.pop(context),
+        // ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

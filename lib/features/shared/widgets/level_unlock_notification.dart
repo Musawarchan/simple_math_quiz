@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../data/models/math_models.dart';
 
 class LevelUnlockNotification extends StatefulWidget {
@@ -19,202 +18,182 @@ class LevelUnlockNotification extends StatefulWidget {
 
 class _LevelUnlockNotificationState extends State<LevelUnlockNotification>
     with TickerProviderStateMixin {
-  late AnimationController _slideController;
   late AnimationController _scaleController;
-  late Animation<Offset> _slideAnimation;
+  late AnimationController _fadeController;
   late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
+    _startAnimations();
+  }
 
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+  void _initializeAnimations() {
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-
-    _scaleController = AnimationController(
+    _fadeController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, -1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-
     _scaleAnimation = Tween<double>(
-      begin: 0.8,
+      begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _scaleController,
       curve: Curves.elasticOut,
     ));
 
-    _slideController.forward();
-    Future.delayed(const Duration(milliseconds: 200), () {
-      _scaleController.forward();
-    });
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    ));
+  }
 
-    // Auto dismiss after 4 seconds
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) {
-        _dismiss();
-      }
+  void _startAnimations() {
+    _fadeController.forward();
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _scaleController.forward();
     });
   }
 
   @override
   void dispose() {
-    _slideController.dispose();
     _scaleController.dispose();
+    _fadeController.dispose();
     super.dispose();
-  }
-
-  void _dismiss() {
-    _slideController.reverse().then((_) {
-      widget.onDismiss();
-    });
-  }
-
-  String _getLevelIcon(DifficultyLevel level) {
-    switch (level) {
-      case DifficultyLevel.beginner:
-        return '🌱';
-      case DifficultyLevel.easy:
-        return '⭐';
-      case DifficultyLevel.medium:
-        return '🔥';
-      case DifficultyLevel.hard:
-        return '💪';
-      case DifficultyLevel.expert:
-        return '👑';
-    }
-  }
-
-  String _getLevelName(DifficultyLevel level) {
-    switch (level) {
-      case DifficultyLevel.beginner:
-        return 'Beginner';
-      case DifficultyLevel.easy:
-        return 'Easy';
-      case DifficultyLevel.medium:
-        return 'Medium';
-      case DifficultyLevel.hard:
-        return 'Hard';
-      case DifficultyLevel.expert:
-        return 'Expert';
-    }
-  }
-
-  Color _getLevelColor(DifficultyLevel level) {
-    switch (level) {
-      case DifficultyLevel.beginner:
-        return const Color(0xFF4CAF50);
-      case DifficultyLevel.easy:
-        return const Color(0xFF2196F3);
-      case DifficultyLevel.medium:
-        return const Color(0xFFFF9800);
-      case DifficultyLevel.hard:
-        return const Color(0xFFE91E63);
-      case DifficultyLevel.expert:
-        return const Color(0xFF9C27B0);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 768;
-    final levelColor = _getLevelColor(widget.unlockedLevel);
-
-    return SlideTransition(
-      position: _slideAnimation,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          margin: EdgeInsets.all(isMobile ? 16 : 24),
-          padding: EdgeInsets.all(isMobile ? 20 : 24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [levelColor, levelColor.withOpacity(0.8)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
-            boxShadow: [
-              BoxShadow(
-                color: levelColor.withOpacity(0.3),
-                blurRadius: isMobile ? 15 : 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Level icon
-              Container(
-                padding: EdgeInsets.all(isMobile ? 12 : 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
-                ),
-                child: Text(
-                  _getLevelIcon(widget.unlockedLevel),
-                  style: TextStyle(
-                    fontSize: isMobile ? 24 : 32,
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Container(
+        color: Colors.black.withOpacity(0.5),
+        child: Center(
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE91E63), // Pink color
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
                   ),
-                ),
+                ],
               ),
-              SizedBox(width: isMobile ? 16 : 20),
-
-              // Level info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '🎉 Level Unlocked!',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Close button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: widget.onDismiss,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.close,
                             color: Colors.white,
-                            fontSize: isMobile ? 16 : 18,
+                            size: 20,
                           ),
-                    ),
-                    SizedBox(height: isMobile ? 4 : 6),
-                    Text(
-                      '${_getLevelName(widget.unlockedLevel)} Level',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            fontSize: isMobile ? 14 : 16,
-                          ),
-                    ),
-                    SizedBox(height: isMobile ? 2 : 4),
-                    Text(
-                      'You can now practice with this difficulty level!',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: isMobile ? 12 : 14,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
 
-              // Close button
-              IconButton(
-                onPressed: _dismiss,
-                icon: Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: isMobile ? 20 : 24,
-                ),
+                  // Celebration icon
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: const Icon(
+                      Icons.celebration,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Title
+                  const Text(
+                    'Level Unlocked!',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Level name
+                  Text(
+                    '${widget.unlockedLevel.name.toUpperCase()} Level',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Description
+                  Text(
+                    'You can now practice with this difficulty level!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Continue button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: widget.onDismiss,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFFE91E63),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Continue',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

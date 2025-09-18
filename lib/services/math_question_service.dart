@@ -47,15 +47,15 @@ class MathQuestionService {
   int _generateOperand(DifficultyLevel difficultyLevel) {
     switch (difficultyLevel) {
       case DifficultyLevel.beginner:
-        return _random.nextInt(4); // 0-3
+        return _random.nextInt(10) + 1; // 1-10 (was 0-3)
       case DifficultyLevel.easy:
-        return _random.nextInt(6); // 0-5
+        return _random.nextInt(20) + 5; // 5-24 (was 0-5)
       case DifficultyLevel.medium:
-        return _random.nextInt(8); // 0-7
+        return _random.nextInt(50) + 10; // 10-59 (was 0-7)
       case DifficultyLevel.hard:
-        return _random.nextInt(10); // 0-9
+        return _random.nextInt(100) + 20; // 20-119 (was 0-9)
       case DifficultyLevel.expert:
-        return _random.nextInt(13); // 0-12
+        return _random.nextInt(200) + 50; // 50-249 (was 0-12)
     }
   }
 
@@ -81,24 +81,24 @@ class MathQuestionService {
       int wrongOption;
       switch (difficultyLevel) {
         case DifficultyLevel.beginner:
-          // Beginner: very close to correct answer (±1)
-          wrongOption = correctAnswer + (_random.nextInt(3) - 1);
+          // Beginner: moderately different (±2-5)
+          wrongOption = correctAnswer + (_random.nextInt(8) - 4);
           break;
         case DifficultyLevel.easy:
-          // Easy: close to correct answer (±1-2)
-          wrongOption = correctAnswer + (_random.nextInt(5) - 2);
+          // Easy: more varied options (±3-8)
+          wrongOption = correctAnswer + (_random.nextInt(16) - 8);
           break;
         case DifficultyLevel.medium:
-          // Medium: moderately different (±1-3)
-          wrongOption = correctAnswer + (_random.nextInt(7) - 3);
+          // Medium: varied options (±5-15)
+          wrongOption = correctAnswer + (_random.nextInt(30) - 15);
           break;
         case DifficultyLevel.hard:
-          // Hard: more varied options (±1-5)
-          wrongOption = correctAnswer + (_random.nextInt(11) - 5);
+          // Hard: very varied options (±10-25)
+          wrongOption = correctAnswer + (_random.nextInt(50) - 25);
           break;
         case DifficultyLevel.expert:
-          // Expert: very varied options (±1-8)
-          wrongOption = correctAnswer + (_random.nextInt(17) - 8);
+          // Expert: extremely varied options (±20-50)
+          wrongOption = correctAnswer + (_random.nextInt(100) - 50);
           break;
       }
 

@@ -29,19 +29,19 @@ class _SettingsTabState extends State<SettingsTab> {
         children: [
           // App Settings
           _buildAppSettings(context, isMobile),
-          
+
           SizedBox(height: isMobile ? 24 : 32),
-          
+
           // Account Settings
           _buildAccountSettings(context, isMobile),
-          
+
           SizedBox(height: isMobile ? 24 : 32),
-          
+
           // Data Management
           _buildDataManagement(context, isMobile),
-          
+
           SizedBox(height: isMobile ? 24 : 32),
-          
+
           // About Section
           _buildAboutSection(context, isMobile),
         ],
@@ -73,13 +73,13 @@ class _SettingsTabState extends State<SettingsTab> {
           Text(
             'App Settings',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-            ),
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
           ),
-          
+
           SizedBox(height: isMobile ? 20 : 24),
-          
+
           // Sound Settings
           _buildSettingItem(
             context,
@@ -90,9 +90,9 @@ class _SettingsTabState extends State<SettingsTab> {
             (value) => setState(() => _soundEnabled = value),
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Vibration Settings
           _buildSettingItem(
             context,
@@ -103,9 +103,9 @@ class _SettingsTabState extends State<SettingsTab> {
             (value) => setState(() => _vibrationEnabled = value),
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Notifications Settings
           _buildSettingItem(
             context,
@@ -116,9 +116,9 @@ class _SettingsTabState extends State<SettingsTab> {
             (value) => setState(() => _notificationsEnabled = value),
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 20 : 24),
-          
+
           // Language Selection
           _buildDropdownSetting(
             context,
@@ -130,9 +130,9 @@ class _SettingsTabState extends State<SettingsTab> {
             (value) => setState(() => _selectedLanguage = value!),
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Theme Selection
           _buildDropdownSetting(
             context,
@@ -173,13 +173,13 @@ class _SettingsTabState extends State<SettingsTab> {
           Text(
             'Account Settings',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-            ),
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
           ),
-          
+
           SizedBox(height: isMobile ? 20 : 24),
-          
+
           // Change Password
           _buildActionItem(
             context,
@@ -197,9 +197,9 @@ class _SettingsTabState extends State<SettingsTab> {
             },
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Privacy Settings
           _buildActionItem(
             context,
@@ -217,9 +217,9 @@ class _SettingsTabState extends State<SettingsTab> {
             },
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Account Security
           _buildActionItem(
             context,
@@ -236,6 +236,23 @@ class _SettingsTabState extends State<SettingsTab> {
               );
             },
             isMobile,
+          ),
+          SizedBox(height: isMobile ? 16 : 20),
+          // Login/Logout Button
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, child) {
+              return _buildActionItem(
+                context,
+                authProvider.isAuthenticated ? 'Logout' : 'Login',
+                authProvider.isAuthenticated
+                    ? 'Sign out of your account'
+                    : 'Sign in to your account',
+                authProvider.isAuthenticated ? Icons.logout : Icons.login,
+                authProvider.isAuthenticated ? Colors.red : Colors.green,
+                () => _handleAuthAction(context, authProvider),
+                isMobile,
+              );
+            },
           ),
         ],
       ),
@@ -266,13 +283,13 @@ class _SettingsTabState extends State<SettingsTab> {
           Text(
             'Data Management',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-            ),
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
           ),
-          
+
           SizedBox(height: isMobile ? 20 : 24),
-          
+
           // Export Data
           _buildActionItem(
             context,
@@ -290,9 +307,9 @@ class _SettingsTabState extends State<SettingsTab> {
             },
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Clear Cache
           _buildActionItem(
             context,
@@ -311,9 +328,9 @@ class _SettingsTabState extends State<SettingsTab> {
             },
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Reset Progress
           _buildActionItem(
             context,
@@ -353,13 +370,13 @@ class _SettingsTabState extends State<SettingsTab> {
           Text(
             'About',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-            ),
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
           ),
-          
+
           SizedBox(height: isMobile ? 20 : 24),
-          
+
           // App Version
           _buildInfoItem(
             context,
@@ -368,9 +385,9 @@ class _SettingsTabState extends State<SettingsTab> {
             Icons.info_outline,
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Terms of Service
           _buildActionItem(
             context,
@@ -388,9 +405,9 @@ class _SettingsTabState extends State<SettingsTab> {
             },
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Privacy Policy
           _buildActionItem(
             context,
@@ -408,9 +425,9 @@ class _SettingsTabState extends State<SettingsTab> {
             },
             isMobile,
           ),
-          
+
           SizedBox(height: isMobile ? 16 : 20),
-          
+
           // Contact Support
           _buildActionItem(
             context,
@@ -465,16 +482,16 @@ class _SettingsTabState extends State<SettingsTab> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
               ),
               SizedBox(height: isMobile ? 4 : 6),
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
               ),
             ],
           ),
@@ -521,16 +538,16 @@ class _SettingsTabState extends State<SettingsTab> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
               ),
               SizedBox(height: isMobile ? 4 : 6),
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
               ),
             ],
           ),
@@ -595,16 +612,16 @@ class _SettingsTabState extends State<SettingsTab> {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
-                    ),
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
                   ),
                   SizedBox(height: isMobile ? 4 : 6),
                   Text(
                     description,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
+                          color: AppTheme.textSecondary,
+                        ),
                   ),
                 ],
               ),
@@ -650,16 +667,16 @@ class _SettingsTabState extends State<SettingsTab> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
               ),
               SizedBox(height: isMobile ? 4 : 6),
               Text(
                 value,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
+                      color: AppTheme.textSecondary,
+                    ),
               ),
             ],
           ),
@@ -699,9 +716,10 @@ class _SettingsTabState extends State<SettingsTab> {
 
   Future<void> _resetProgress() async {
     try {
-      final historyService = Provider.of<SessionHistoryService>(context, listen: false);
+      final historyService =
+          Provider.of<SessionHistoryService>(context, listen: false);
       await historyService.clearAllData();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -721,6 +739,46 @@ class _SettingsTabState extends State<SettingsTab> {
           ),
         );
       }
+    }
+  }
+
+  void _handleAuthAction(
+      BuildContext context, AuthProvider authProvider) async {
+    if (authProvider.isAuthenticated) {
+      // Handle logout
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Logout'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        await authProvider.signOut();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Logged out successfully!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } else {
+      // Handle login - navigate to login screen
+      Navigator.of(context).pushNamed('/login');
     }
   }
 }
