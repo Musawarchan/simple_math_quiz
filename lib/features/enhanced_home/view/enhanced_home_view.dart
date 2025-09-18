@@ -7,6 +7,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../services/difficulty_progression_service.dart';
 import '../../../routing/app_routes.dart';
 import '../../auth/widgets/auth_wrapper.dart';
+import '../../profile/view/profile_screen.dart';
 
 class EnhancedHomeView extends StatefulWidget {
   const EnhancedHomeView({super.key});
@@ -176,7 +177,13 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
                   ),
                 ),
                 onSelected: (value) async {
-                  if (value == 'logout') {
+                  if (value == 'profile') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ProfileScreen()),
+                    );
+                  } else if (value == 'logout') {
                     await _handleLogout(context);
                   }
                 },

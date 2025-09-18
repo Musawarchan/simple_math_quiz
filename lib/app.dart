@@ -64,6 +64,17 @@ class MathDrillApp extends StatelessWidget {
         title: 'Math Drill MVP',
         theme: AppTheme.lightTheme,
         home: const AuthWrapper(),
+     
+        routes: {
+          AppRoutes.addition: (context) => AppPages.additionPage(context),
+          AppRoutes.multiplication: (context) =>
+              AppPages.multiplicationPage(context),
+          AppRoutes.analytics: (context) => AppPages.analyticsPage(context),
+          AppRoutes.achievements: (context) =>
+              AppPages.achievementsPage(context),
+          AppRoutes.login: (context) => AppPages.loginPage(context),
+          AppRoutes.signup: (context) => AppPages.signupPage(context),
+        },
         debugShowCheckedModeBanner: false,
       ),
     );
