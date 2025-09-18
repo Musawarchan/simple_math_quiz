@@ -5,12 +5,14 @@ import '../services/math_question_service.dart';
 import '../services/drill_session_service.dart';
 import '../services/session_history_service.dart';
 import '../services/gamification_service.dart';
+import '../services/difficulty_progression_service.dart';
 
 class EnhancedDrillProvider extends ChangeNotifier {
   final MathQuestionService _questionService;
   final DrillSessionService _sessionService;
   final SessionHistoryService _historyService;
   final GamificationService _gamificationService;
+  final DifficultyProgressionService _progressionService;
 
   EnhancedDrillProvider({
     required MathQuestionService questionService,
@@ -18,7 +20,8 @@ class EnhancedDrillProvider extends ChangeNotifier {
   })  : _questionService = questionService,
         _sessionService = sessionService,
         _historyService = SessionHistoryService(),
-        _gamificationService = GamificationService(SessionHistoryService());
+        _gamificationService = GamificationService(SessionHistoryService()),
+        _progressionService = DifficultyProgressionService();
 
   DrillSession get session => _sessionService.session;
   MathQuestion? get currentQuestion => _sessionService.currentQuestion;
@@ -43,6 +46,7 @@ class EnhancedDrillProvider extends ChangeNotifier {
   DateTime? _sessionStartTime;
   int _sessionXP = 0;
   List<AchievementType> _newAchievements = [];
+  bool _newLevelUnlocked = false;
 
   bool get isWaitingForAnswer => _isWaitingForAnswer;
   bool get showResult => _showResult;
@@ -50,6 +54,7 @@ class EnhancedDrillProvider extends ChangeNotifier {
   String get resultMessage => _resultMessage;
   bool get isSessionComplete => _isSessionComplete;
   int get questionLimit => _questionLimit;
+  DifficultyLevel get difficultyLevel => _currentDifficultyLevel;
   int get currentQuestionNumber => _sessionService.session.totalQuestions;
   bool get isReadyToStart => _isReadyToStart;
   bool get showContinueButton => _showContinueButton;
@@ -58,6 +63,7 @@ class EnhancedDrillProvider extends ChangeNotifier {
   // Progress tracking getters
   int get sessionXP => _sessionXP;
   List<AchievementType> get newAchievements => _newAchievements;
+  bool get newLevelUnlocked => _newLevelUnlocked;
 
   void startSession({
     required OperationType operationType,
@@ -86,6 +92,7 @@ class EnhancedDrillProvider extends ChangeNotifier {
     _sessionStartTime = null;
     _sessionXP = 0;
     _newAchievements = [];
+    _newLevelUnlocked = false;
 
     _sessionService.startNewSession();
     // Don't generate question yet - wait for user to click "Start"
@@ -218,6 +225,11 @@ class EnhancedDrillProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void resetLevelUnlockedFlag() {
+    _newLevelUnlocked = false;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     // Clean up any resources
@@ -257,6 +269,20 @@ class EnhancedDrillProvider extends ChangeNotifier {
       final newAchievements =
           await _gamificationService.checkAchievements(sessionRecord);
       _newAchievements = newAchievements;
+
+      // Check for level unlocking
+      _newLevelUnlocked = await _progressionService.processSessionCompletion(
+        completedLevel: _currentDifficultyLevel,
+        accuracy: sessionRecord.accuracy,
+        totalQuestions: sessionRecord.totalQuestions,
+      );
+
+      // If a new level was unlocked, update to the next unlocked level
+      if (_newLevelUnlocked) {
+        final nextUnlockedLevel =
+            await _progressionService.getHighestUnlockedLevel();
+        _currentDifficultyLevel = nextUnlockedLevel;
+      }
     } catch (e) {
       // Handle error silently for now
       print('Error saving session: $e');

@@ -8,7 +8,9 @@ import '../../../routing/app_routes.dart';
 import '../../shared/widgets/timer_widget.dart';
 import '../../shared/widgets/answer_input_widget.dart';
 import '../../shared/widgets/mcq_widget.dart';
+import '../../shared/widgets/level_unlock_notification.dart';
 import '../../results/view/results_screen.dart';
+import '../../../services/difficulty_progression_service.dart';
 
 class EnhancedDrillView extends StatefulWidget {
   final OperationType operationType;
@@ -105,6 +107,13 @@ class _EnhancedDrillViewState extends State<EnhancedDrillView> {
           if (viewModel.shouldShowResultsPopup) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _showResultsDialog(context, viewModel);
+            });
+          }
+
+          // Show level unlock notification
+          if (viewModel.newLevelUnlocked) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _showLevelUnlockNotification(context, viewModel);
             });
           }
 
@@ -860,5 +869,48 @@ class _EnhancedDrillViewState extends State<EnhancedDrillView> {
         ),
       ),
     );
+  }
+
+  void _showLevelUnlockNotification(
+      BuildContext context, EnhancedDrillProvider viewModel) {
+    // Get the next unlocked level (current level + 1)
+    final nextLevel = _getNextDifficultyLevel(viewModel.difficultyLevel);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: LevelUnlockNotification(
+          unlockedLevel: nextLevel,
+          onDismiss: () {
+            Navigator.of(context).pop();
+            // Reset the flag
+            viewModel.resetLevelUnlockedFlag();
+
+            // Force refresh the progression service to notify listeners
+            final progressionService =
+                Provider.of<DifficultyProgressionService>(context,
+                    listen: false);
+            progressionService.notifyListeners();
+          },
+        ),
+      ),
+    );
+  }
+
+  DifficultyLevel _getNextDifficultyLevel(DifficultyLevel currentLevel) {
+    switch (currentLevel) {
+      case DifficultyLevel.beginner:
+        return DifficultyLevel.easy;
+      case DifficultyLevel.easy:
+        return DifficultyLevel.medium;
+      case DifficultyLevel.medium:
+        return DifficultyLevel.hard;
+      case DifficultyLevel.hard:
+        return DifficultyLevel.expert;
+      case DifficultyLevel.expert:
+        return DifficultyLevel.expert; // No next level
+    }
   }
 }

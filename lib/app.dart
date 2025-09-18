@@ -7,6 +7,7 @@ import 'services/math_question_service.dart';
 import 'services/drill_session_service.dart';
 import 'services/session_history_service.dart';
 import 'services/gamification_service.dart';
+import 'services/difficulty_progression_service.dart';
 import 'providers/enhanced_drill_provider.dart';
 
 class MathDrillApp extends StatelessWidget {
@@ -29,6 +30,9 @@ class MathDrillApp extends StatelessWidget {
         Provider<GamificationService>(
           create: (context) =>
               GamificationService(context.read<SessionHistoryService>()),
+        ),
+        Provider<DifficultyProgressionService>(
+          create: (_) => DifficultyProgressionService(),
         ),
 
         // Providers

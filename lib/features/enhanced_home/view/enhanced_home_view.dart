@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/math_models.dart';
+import '../../../providers/enhanced_drill_provider.dart';
+import '../../../services/difficulty_progression_service.dart';
 import '../../../routing/app_routes.dart';
 
 class EnhancedHomeView extends StatefulWidget {
@@ -16,6 +19,11 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+
+  // Progression tracking
+  Map<DifficultyLevel, bool> _progressionState = {};
+  bool _isLoadingProgression = true;
+  bool _needsRefresh = false;
 
   OperationType _selectedOperation = OperationType.addition;
   QuestionType _selectedQuestionType = QuestionType.fillInBlank;
@@ -33,6 +41,8 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
+
+    _loadProgressionState();
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
@@ -52,12 +62,42 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
 
     _fadeController.forward();
     _slideController.forward();
+
+    // Listen to progression service changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final progressionService =
+          Provider.of<DifficultyProgressionService>(context, listen: false);
+      progressionService.addListener(_onProgressionChanged);
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh progression state when returning to home screen
+    _loadProgressionState();
+  }
+
+  void _onProgressionChanged() {
+    if (mounted) {
+      _loadProgressionState();
+    }
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
     _slideController.dispose();
+
+    // Remove listener
+    try {
+      final progressionService =
+          Provider.of<DifficultyProgressionService>(context, listen: false);
+      progressionService.removeListener(_onProgressionChanged);
+    } catch (e) {
+      // Ignore if context is not available
+    }
+
     super.dispose();
   }
 
@@ -145,6 +185,15 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
                     FadeTransition(
                       opacity: _fadeAnimation,
                       child: _buildProgressSection(context, isMobile),
+                    ),
+
+                    SizedBox(height: isMobile ? 20 : 30),
+
+                    // Difficulty Progression Section
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child:
+                          _buildDifficultyProgressionSection(context, isMobile),
                     ),
 
                     SizedBox(height: isMobile ? 16 : 20),
@@ -284,6 +333,25 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
   }
 
   Widget _buildDifficultySelection(BuildContext context, bool isMobile) {
+    if (_isLoadingProgression) {
+      return _buildSelectionCard(
+        context,
+        'Difficulty Level',
+        [
+          Container(
+            padding: EdgeInsets.all(isMobile ? 20 : 24),
+            child: const Center(
+              child: CircularProgressIndicator(
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(AppTheme.primaryPurple),
+              ),
+            ),
+          ),
+        ],
+        isMobile,
+      );
+    }
+
     return _buildSelectionCard(
       context,
       'Difficulty Level',
@@ -522,6 +590,7 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
     bool isMobile,
   ) {
     final isSelected = _selectedDifficulty == value;
+    final isUnlocked = _isDifficultyUnlocked(value);
     final gradient = LinearGradient(
       colors: [color, color.withOpacity(0.7)],
     );
@@ -531,7 +600,7 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _setSelectedValue(value),
+          onTap: isUnlocked ? () => _onDifficultyChanged(value) : null,
           borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
           child: Container(
             width: double.infinity,
@@ -552,15 +621,21 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
                 Container(
                   padding: EdgeInsets.all(isMobile ? 8 : 12),
                   decoration: BoxDecoration(
-                    color: isSelected
+                    color: isSelected && isUnlocked
                         ? Colors.white.withOpacity(0.2)
-                        : color.withOpacity(0.1),
+                        : isUnlocked
+                            ? color.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
                   ),
                   child: Icon(
                     icon,
                     size: isMobile ? 20 : 24,
-                    color: isSelected ? Colors.white : color,
+                    color: isSelected && isUnlocked
+                        ? Colors.white
+                        : isUnlocked
+                            ? color
+                            : Colors.grey,
                   ),
                 ),
                 SizedBox(width: isMobile ? 12 : 16),
@@ -568,27 +643,57 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: isSelected
+                                  color: isSelected && isUnlocked
                                       ? Colors.white
-                                      : AppTheme.textPrimary,
+                                      : isUnlocked
+                                          ? AppTheme.textPrimary
+                                          : Colors.grey,
                                   fontSize: isMobile ? 14 : 16,
                                 ),
+                          ),
+                          if (!isUnlocked) ...[
+                            SizedBox(width: isMobile ? 4 : 8),
+                            Icon(
+                              Icons.lock_outline,
+                              size: isMobile ? 14 : 16,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ],
                       ),
-                      SizedBox(height: 2),
+                      SizedBox(height: isMobile ? 2 : 4),
                       Text(
                         description,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isSelected
+                              color: isSelected && isUnlocked
                                   ? Colors.white.withOpacity(0.8)
-                                  : AppTheme.textSecondary,
+                                  : isUnlocked
+                                      ? AppTheme.textSecondary
+                                      : Colors.grey,
                               fontSize: isMobile ? 11 : 12,
                             ),
                       ),
+                      if (!isUnlocked) ...[
+                        SizedBox(height: isMobile ? 2 : 4),
+                        Text(
+                          'Complete previous level with 100% accuracy',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey,
+                                    fontSize: isMobile ? 9 : 11,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -916,5 +1021,265 @@ class _EnhancedHomeViewState extends State<EnhancedHomeView>
         ),
       ),
     );
+  }
+
+  Future<void> _loadProgressionState() async {
+    try {
+      final progressionService =
+          Provider.of<DifficultyProgressionService>(context, listen: false);
+      final progressionState = await progressionService.getProgressionState();
+      final highestUnlocked =
+          await progressionService.getHighestUnlockedLevel();
+
+      setState(() {
+        _progressionState = progressionState;
+        _isLoadingProgression = false;
+        _selectedDifficulty = highestUnlocked;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingProgression = false;
+      });
+    }
+  }
+
+  bool _isDifficultyUnlocked(DifficultyLevel level) {
+    return _progressionState[level] ?? false;
+  }
+
+  void _onDifficultyChanged(DifficultyLevel? value) {
+    if (value != null && _isDifficultyUnlocked(value)) {
+      setState(() {
+        _selectedDifficulty = value;
+      });
+    }
+  }
+
+  Widget _buildDifficultyProgressionSection(
+      BuildContext context, bool isMobile) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 20 : 24),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundCard,
+        borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: isMobile ? 12 : 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isMobile ? 6 : 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryPurple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(isMobile ? 6 : 8),
+                ),
+                child: Icon(
+                  Icons.trending_up,
+                  color: AppTheme.primaryPurple,
+                  size: isMobile ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: isMobile ? 8 : 12),
+              Text(
+                'Difficulty Progression',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                      fontSize: isMobile ? 16 : 18,
+                    ),
+              ),
+            ],
+          ),
+          SizedBox(height: isMobile ? 16 : 20),
+          _buildProgressionLevels(context, isMobile),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressionLevels(BuildContext context, bool isMobile) {
+    final levels = [
+      {
+        'level': DifficultyLevel.beginner,
+        'name': 'Beginner',
+        'icon': '🌱',
+        'color': const Color(0xFF4CAF50)
+      },
+      {
+        'level': DifficultyLevel.easy,
+        'name': 'Easy',
+        'icon': '⭐',
+        'color': const Color(0xFF2196F3)
+      },
+      {
+        'level': DifficultyLevel.medium,
+        'name': 'Medium',
+        'icon': '🔥',
+        'color': const Color(0xFFFF9800)
+      },
+      {
+        'level': DifficultyLevel.hard,
+        'name': 'Hard',
+        'icon': '💪',
+        'color': const Color(0xFFE91E63)
+      },
+      {
+        'level': DifficultyLevel.expert,
+        'name': 'Expert',
+        'icon': '👑',
+        'color': const Color(0xFF9C27B0)
+      },
+    ];
+
+    return Column(
+      children: levels.asMap().entries.map((entry) {
+        final index = entry.key;
+        final levelData = entry.value;
+        final level = levelData['level'] as DifficultyLevel;
+        final name = levelData['name'] as String;
+        final icon = levelData['icon'] as String;
+        final color = levelData['color'] as Color;
+        final isUnlocked = _isDifficultyUnlocked(level);
+        final isSelected = _selectedDifficulty == level;
+
+        return Container(
+          margin: EdgeInsets.only(bottom: isMobile ? 8 : 12),
+          child: Row(
+            children: [
+              // Level icon
+              Container(
+                width: isMobile ? 40 : 48,
+                height: isMobile ? 40 : 48,
+                decoration: BoxDecoration(
+                  color: isUnlocked
+                      ? color.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
+                  border: Border.all(
+                    color: isUnlocked
+                        ? color.withOpacity(0.3)
+                        : Colors.grey.withOpacity(0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    icon,
+                    style: TextStyle(
+                      fontSize: isMobile ? 16 : 20,
+                      color: isUnlocked ? color : Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: isMobile ? 12 : 16),
+
+              // Level info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          name,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: isUnlocked
+                                        ? AppTheme.textPrimary
+                                        : Colors.grey,
+                                    fontSize: isMobile ? 14 : 16,
+                                  ),
+                        ),
+                        if (!isUnlocked) ...[
+                          SizedBox(width: isMobile ? 4 : 8),
+                          Icon(
+                            Icons.lock_outline,
+                            size: isMobile ? 14 : 16,
+                            color: Colors.grey,
+                          ),
+                        ],
+                        if (isSelected && isUnlocked) ...[
+                          SizedBox(width: isMobile ? 4 : 8),
+                          Icon(
+                            Icons.check_circle,
+                            size: isMobile ? 14 : 16,
+                            color: AppTheme.primaryGreen,
+                          ),
+                        ],
+                      ],
+                    ),
+                    SizedBox(height: isMobile ? 2 : 4),
+                    Text(
+                      _getLevelDescription(level),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isUnlocked
+                                ? AppTheme.textSecondary
+                                : Colors.grey,
+                            fontSize: isMobile ? 10 : 12,
+                          ),
+                    ),
+                    if (!isUnlocked) ...[
+                      SizedBox(height: isMobile ? 2 : 4),
+                      Text(
+                        'Complete previous level with 100% accuracy',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.grey,
+                              fontSize: isMobile ? 9 : 11,
+                              fontStyle: FontStyle.italic,
+                            ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Connection line to next level
+              if (index < levels.length - 1)
+                Container(
+                  width: isMobile ? 20 : 24,
+                  height: isMobile ? 2 : 3,
+                  margin: EdgeInsets.symmetric(horizontal: isMobile ? 4 : 8),
+                  decoration: BoxDecoration(
+                    color: isUnlocked
+                        ? AppTheme.primaryPurple.withOpacity(0.3)
+                        : Colors.grey.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  String _getLevelDescription(DifficultyLevel level) {
+    switch (level) {
+      case DifficultyLevel.beginner:
+        return 'Numbers 0-3, 8s timer';
+      case DifficultyLevel.easy:
+        return 'Numbers 0-5, 5s timer';
+      case DifficultyLevel.medium:
+        return 'Numbers 0-7, 3s timer';
+      case DifficultyLevel.hard:
+        return 'Numbers 0-9, 2s timer';
+      case DifficultyLevel.expert:
+        return 'Numbers 0-12, 1s timer';
+    }
   }
 }
