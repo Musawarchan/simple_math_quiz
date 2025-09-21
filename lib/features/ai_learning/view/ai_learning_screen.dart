@@ -21,6 +21,7 @@ class _AILearningScreenState extends State<AILearningScreen>
   late Animation<Offset> _slideAnimation;
 
   final TextEditingController _questionController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final List<AIChatMessage> _messages = [];
 
   @override
@@ -70,6 +71,7 @@ class _AILearningScreenState extends State<AILearningScreen>
       "📈 Mathematical applications in real life\n\n"
       "What would you like to learn today?",
     ));
+    _scrollToBottom();
   }
 
   @override
@@ -77,6 +79,7 @@ class _AILearningScreenState extends State<AILearningScreen>
     _fadeController.dispose();
     _slideController.dispose();
     _questionController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -298,6 +301,7 @@ class _AILearningScreenState extends State<AILearningScreen>
         ],
       ),
       child: ListView.builder(
+        controller: _scrollController,
         padding: const EdgeInsets.all(16),
         itemCount: _messages.length,
         itemBuilder: (context, index) {
@@ -467,6 +471,21 @@ class _AILearningScreenState extends State<AILearningScreen>
     _sendMessage();
   }
 
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      // Use addPostFrameCallback to ensure the ListView has been built
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+  }
+
   void _sendMessage() async {
     final text = _questionController.text.trim();
     if (text.isEmpty) return;
@@ -477,6 +496,7 @@ class _AILearningScreenState extends State<AILearningScreen>
     setState(() {
       _messages.add(AIChatMessage.user(text));
     });
+    _scrollToBottom();
 
     _questionController.clear();
 
@@ -484,6 +504,7 @@ class _AILearningScreenState extends State<AILearningScreen>
     setState(() {
       _messages.add(AIChatMessage.ai('🤖 AI is thinking...'));
     });
+    _scrollToBottom();
 
     // Get AI response
     final response = await aiProvider.sendMessage(text);
@@ -494,6 +515,7 @@ class _AILearningScreenState extends State<AILearningScreen>
         _messages.removeLast(); // Remove "AI is thinking..." message
         _messages.add(AIChatMessage.ai(response));
       });
+      _scrollToBottom();
     } else if (mounted && aiProvider.errorMessage != null) {
       setState(() {
         // Remove the loading message and add error message
@@ -501,6 +523,7 @@ class _AILearningScreenState extends State<AILearningScreen>
         _messages.add(AIChatMessage.ai(
             "I apologize, but I'm having trouble responding right now. Please check your internet connection and try again."));
       });
+      _scrollToBottom();
     }
   }
 
