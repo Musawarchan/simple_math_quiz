@@ -1,13 +1,10 @@
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AILearningService {
-  static const String _apiKeyKey = 'AIzaSyBjxxkFDEviYxYih8y_5cMBvgCMJTjSEgY';
+  static const String _apiKeyKey = 'gemini_api_key';
   static const String _conversationHistoryKey = 'ai_conversation_history';
-
-  // Default API key - in production, this should be stored securely
-  static const String _defaultApiKey =
-      'AIzaSyBjxxkFDEviYxYih8y_5cMBvgCMJTjSEgY';
 
   late Gemini _gemini;
   bool _isInitialized = false;
@@ -17,15 +14,17 @@ class AILearningService {
   Future<void> initialize() async {
     try {
       final apiKey = await _getApiKey();
-      print('API Key retrieved: ${apiKey.substring(0, 10)}...');
 
       if (apiKey.isEmpty) {
-        throw Exception('Please set your Gemini API key');
+        throw Exception(
+            'Please set your Gemini API key in .env file or through the app settings');
       }
 
+      print('API Key retrieved: ${apiKey.substring(0, 10)}...');
       print('Initializing Gemini...');
 
-      // Gemini is already initialized in main.dart
+      // Initialize Gemini with the API key
+      Gemini.init(apiKey: apiKey);
       _gemini = Gemini.instance;
 
       _isInitialized = true;
@@ -127,8 +126,15 @@ Remember: Your goal is to make math learning enjoyable, accessible, and effectiv
 
   /// Get the stored API key
   Future<String> _getApiKey() async {
+    // First try to get from environment variables
+    final String? envApiKey = dotenv.env['GEMINI_API_KEY'];
+    if (envApiKey != null && envApiKey.isNotEmpty) {
+      return envApiKey;
+    }
+
+    // Fallback to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_apiKeyKey) ?? _defaultApiKey;
+    return prefs.getString(_apiKeyKey) ?? '';
   }
 
   /// Check if API key is configured
