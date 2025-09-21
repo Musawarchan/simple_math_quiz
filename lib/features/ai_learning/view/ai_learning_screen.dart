@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/ai_learning_provider.dart';
+import '../../../data/models/ai_models.dart';
+import 'ai_settings_screen.dart';
+import 'ai_test_screen.dart';
 
 class AILearningScreen extends StatefulWidget {
   const AILearningScreen({super.key});
@@ -17,8 +21,7 @@ class _AILearningScreenState extends State<AILearningScreen>
   late Animation<Offset> _slideAnimation;
 
   final TextEditingController _questionController = TextEditingController();
-  final List<ChatMessage> _messages = [];
-  bool _isLoading = false;
+  final List<AIChatMessage> _messages = [];
 
   @override
   void initState() {
@@ -58,17 +61,14 @@ class _AILearningScreenState extends State<AILearningScreen>
   }
 
   void _addWelcomeMessage() {
-    _messages.add(ChatMessage(
-      text:
-          "Hello! I'm your AI Learning Assistant. I can help you learn about:\n\n"
-          "📚 Math concepts and problem-solving\n"
-          "🧮 Advanced arithmetic techniques\n"
-          "📊 Data analysis and statistics\n"
-          "🔢 Number theory and patterns\n"
-          "📈 Mathematical applications in real life\n\n"
-          "What would you like to learn today?",
-      isUser: false,
-      timestamp: DateTime.now(),
+    _messages.add(AIChatMessage.ai(
+      "Hello! I'm your AI Learning Assistant powered by Gemini AI. I can help you learn about:\n\n"
+      "📚 Math concepts and problem-solving\n"
+      "🧮 Advanced arithmetic techniques\n"
+      "📊 Data analysis and statistics\n"
+      "🔢 Number theory and patterns\n"
+      "📈 Mathematical applications in real life\n\n"
+      "What would you like to learn today?",
     ));
   }
 
@@ -96,6 +96,32 @@ class _AILearningScreenState extends State<AILearningScreen>
               ),
         ),
         actions: [
+          // Test button (temporary)
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AITestScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.bug_report),
+            tooltip: 'Test AI',
+          ),
+          // Settings button
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AISettingsScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings),
+            tooltip: 'AI Settings',
+          ),
           Consumer<AuthProvider>(
             builder: (context, authProvider, child) {
               return PopupMenuButton<String>(
@@ -282,7 +308,7 @@ class _AILearningScreenState extends State<AILearningScreen>
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message) {
+  Widget _buildMessageBubble(AIChatMessage message) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -395,36 +421,41 @@ class _AILearningScreenState extends State<AILearningScreen>
                       EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
                 maxLines: null,
-                onSubmitted: _isLoading ? null : (value) => _sendMessage(),
+                onSubmitted: (value) => _sendMessage(),
               ),
             ),
           ),
           const SizedBox(width: 12),
-          GestureDetector(
-            onTap: _isLoading ? null : _sendMessage,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: _isLoading
-                    ? Colors.grey[300]
-                    : Theme.of(context).primaryColor,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Icon(
-                      Icons.send,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-            ),
+          Consumer<AILearningProvider>(
+            builder: (context, aiProvider, child) {
+              return GestureDetector(
+                onTap: aiProvider.isLoading ? null : _sendMessage,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: aiProvider.isLoading
+                        ? Colors.grey[300]
+                        : Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: aiProvider.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Icon(
+                          Icons.send,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -436,53 +467,40 @@ class _AILearningScreenState extends State<AILearningScreen>
     _sendMessage();
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     final text = _questionController.text.trim();
     if (text.isEmpty) return;
 
+    final aiProvider = Provider.of<AILearningProvider>(context, listen: false);
+
+    // Add user message
     setState(() {
-      _messages.add(ChatMessage(
-        text: text,
-        isUser: true,
-        timestamp: DateTime.now(),
-      ));
-      _isLoading = true;
+      _messages.add(AIChatMessage.user(text));
     });
 
     _questionController.clear();
 
-    // Simulate AI response
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _messages.add(ChatMessage(
-            text: _generateAIResponse(text),
-            isUser: false,
-            timestamp: DateTime.now(),
-          ));
-          _isLoading = false;
-        });
-      }
+    // Add loading message
+    setState(() {
+      _messages.add(AIChatMessage.ai('🤖 AI is thinking...'));
     });
-  }
 
-  String _generateAIResponse(String question) {
-    final lowerQuestion = question.toLowerCase();
+    // Get AI response
+    final response = await aiProvider.sendMessage(text);
 
-    if (lowerQuestion.contains('fraction')) {
-      return "Fractions represent parts of a whole! Think of a pizza cut into slices. If you have 3 slices out of 8 total slices, that's 3/8. The top number (numerator) tells you how many parts you have, and the bottom number (denominator) tells you how many equal parts the whole is divided into. Would you like me to explain how to add, subtract, multiply, or divide fractions?";
-    } else if (lowerQuestion.contains('algebra')) {
-      return "Algebra is like solving puzzles with letters! Instead of just numbers, we use variables (like x, y) to represent unknown values. For example, if x + 5 = 12, we can figure out that x = 7. Algebra helps us solve real-world problems and understand patterns. Would you like to start with basic equations or learn about specific algebraic concepts?";
-    } else if (lowerQuestion.contains('geometry')) {
-      return "Geometry is the study of shapes, sizes, and space! It's everywhere around us - from the rectangular screens we look at to the circular wheels on cars. We learn about points, lines, angles, triangles, circles, and 3D shapes. Geometry helps us understand how things fit together and measure distances and areas. What specific geometric concept interests you?";
-    } else if (lowerQuestion.contains('statistics')) {
-      return "Statistics helps us make sense of data! It's about collecting, organizing, and interpreting information. For example, if you want to know the average height of students in your class, you'd collect everyone's height, add them up, and divide by the number of students. Statistics helps us spot trends, make predictions, and make informed decisions. Would you like to learn about mean, median, mode, or data visualization?";
-    } else if (lowerQuestion.contains('trigonometry')) {
-      return "Trigonometry is about the relationships between angles and sides in triangles! It's incredibly useful in engineering, physics, and even computer graphics. The main trigonometric functions are sine, cosine, and tangent. They help us calculate distances, heights, and angles in real-world situations. Would you like to start with the basics of right triangles or explore specific applications?";
-    } else if (lowerQuestion.contains('calculus')) {
-      return "Calculus is the mathematics of change! It helps us understand how things change over time - like how fast a car is accelerating or how a population grows. There are two main branches: differential calculus (finding rates of change) and integral calculus (finding areas under curves). Calculus is essential in physics, engineering, economics, and many other fields. Would you like to explore derivatives or integrals?";
-    } else {
-      return "That's a great question! I'd be happy to help you learn about that topic. Could you be more specific about what aspect you'd like to explore? For example, are you looking for:\n\n• Basic concepts and definitions\n• Step-by-step problem solving\n• Real-world applications\n• Practice problems\n• Visual explanations\n\nFeel free to ask me anything about math, and I'll do my best to explain it in a way that makes sense!";
+    if (mounted && response != null) {
+      setState(() {
+        // Remove the loading message and add the actual response
+        _messages.removeLast(); // Remove "AI is thinking..." message
+        _messages.add(AIChatMessage.ai(response));
+      });
+    } else if (mounted && aiProvider.errorMessage != null) {
+      setState(() {
+        // Remove the loading message and add error message
+        _messages.removeLast(); // Remove "AI is thinking..." message
+        _messages.add(AIChatMessage.ai(
+            "I apologize, but I'm having trouble responding right now. Please check your internet connection and try again."));
+      });
     }
   }
 
@@ -525,16 +543,4 @@ class _AILearningScreenState extends State<AILearningScreen>
       await authProvider.signOut();
     }
   }
-}
-
-class ChatMessage {
-  final String text;
-  final bool isUser;
-  final DateTime timestamp;
-
-  ChatMessage({
-    required this.text,
-    required this.isUser,
-    required this.timestamp,
-  });
 }

@@ -7,6 +7,7 @@ class AppTheme {
   static const Color primaryGreen = Color(0xFF34D399); // Soft green
   static const Color primaryPink = Color(0xFFF472B6); // Soft pink
   static const Color primaryOrange = Color(0xFFFB923C); // Soft orange
+  static const Color primaryRed = Color(0xFFEF4444); // Soft red
 
   // Neutral Colors
   static const Color backgroundLight = Color(0xFFFAFAFA);
@@ -73,7 +74,7 @@ class AppTheme {
       ),
 
       // Enhanced Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),

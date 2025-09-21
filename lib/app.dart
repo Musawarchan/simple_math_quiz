@@ -9,8 +9,10 @@ import 'services/session_history_service.dart';
 import 'services/gamification_service.dart';
 import 'services/difficulty_progression_service.dart';
 import 'services/auth_service.dart';
+import 'services/ai_learning_service.dart';
 import 'providers/enhanced_drill_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/ai_learning_provider.dart';
 import 'features/navigation/view/main_navigation_wrapper.dart';
 
 class MathDrillApp extends StatelessWidget {
@@ -40,10 +42,16 @@ class MathDrillApp extends StatelessWidget {
         Provider<AuthService>(
           create: (_) => AuthService(),
         ),
+        Provider<AILearningService>(
+          create: (_) => AILearningService(),
+        ),
 
         // Providers
         ChangeNotifierProvider<AuthProvider>(
           create: (context) => AuthProvider(),
+        ),
+        ChangeNotifierProvider<AILearningProvider>(
+          create: (context) => AILearningProvider(),
         ),
         ChangeNotifierProxyProvider2<MathQuestionService, DrillSessionService,
             EnhancedDrillProvider>(
