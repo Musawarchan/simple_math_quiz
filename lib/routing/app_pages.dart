@@ -14,7 +14,7 @@ import 'app_routes.dart';
 class AppPages {
   // Route builders
   static Widget splashPage(BuildContext context) => const SplashScreen();
-  static Widget homePage(BuildContext context) => const EnhancedHomeView();
+  // static Widget homePage(BuildContext context) => const EnhancedHomeView();
   static Widget additionPage(BuildContext context) => const AdditionDrillView();
   static Widget multiplicationPage(BuildContext context) =>
       const MultiplicationDrillView();

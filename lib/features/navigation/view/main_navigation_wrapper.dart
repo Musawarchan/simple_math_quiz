@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../../auth/widgets/auth_wrapper.dart';
 import '../../home/view/home_screen.dart';
 import '../../quiz_selection/view/quiz_selection_screen.dart';
 import '../../ai_learning/view/ai_learning_screen.dart';
@@ -31,7 +30,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         if (!authProvider.isAuthenticated) {
-          return const AuthWrapper();
+          return const SizedBox
+              .shrink(); // Return empty widget instead of recursive call
         }
 
         return Scaffold(

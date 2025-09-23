@@ -13,7 +13,7 @@ import 'services/ai_learning_service.dart';
 import 'providers/enhanced_drill_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/ai_learning_provider.dart';
-import 'features/navigation/view/main_navigation_wrapper.dart';
+import 'features/splash/view/splash_screen.dart';
 
 class MathDrillApp extends StatelessWidget {
   const MathDrillApp({super.key});
@@ -71,7 +71,7 @@ class MathDrillApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Math Drill MVP',
         theme: AppTheme.lightTheme,
-        home: const MainNavigationWrapper(),
+        home: const SplashScreen(),
         routes: {
           AppRoutes.addition: (context) => AppPages.additionPage(context),
           AppRoutes.multiplication: (context) =>

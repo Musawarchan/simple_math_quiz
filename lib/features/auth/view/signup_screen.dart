@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mvp_app/features/navigation/view/main_navigation_wrapper.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/auth_provider.dart';
@@ -115,7 +116,8 @@ class _SignupScreenState extends State<SignupScreen>
         // Navigate to home screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const EnhancedHomeView()),
+          MaterialPageRoute(
+              builder: (context) => const MainNavigationWrapper()),
         );
       } else {
         // Show error message
