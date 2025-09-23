@@ -1,4 +1,4 @@
-# 🧮 Math Drill MVP - Advanced Educational Platform
+# 🧮 Math Drill - Advanced Educational Platform
 
 A comprehensive, gamified educational web application for practicing mathematics with real-time progress tracking, achievements, and AI-powered learning assistance. Built with Flutter Web using clean architecture principles and modern state management patterns.
 
