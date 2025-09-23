@@ -108,10 +108,10 @@ class _UserInfoTabState extends State<UserInfoTab> {
 
               SizedBox(height: isMobile ? 24 : 32),
 
-              // User Stats
-              _buildUserStats(context, isMobile),
+              // // User Stats
+              // _buildUserStats(context, isMobile),
 
-              SizedBox(height: isMobile ? 24 : 32),
+              // SizedBox(height: isMobile ? 24 : 32),
 
               // Profile Form
               _buildProfileForm(context, isMobile),

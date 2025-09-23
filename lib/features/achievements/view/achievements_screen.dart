@@ -132,7 +132,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(padding),
+          padding: EdgeInsets.only(left: padding, right: padding),
           child: Column(
             children: [
               // Progress Header
@@ -315,7 +315,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         crossAxisCount: isMobile ? 2 : 3,
         crossAxisSpacing: isMobile ? 16 : 20,
         mainAxisSpacing: isMobile ? 16 : 20,
-        childAspectRatio: isMobile ? 0.75 : 0.85,
+        childAspectRatio: isMobile ? 0.740 : 0.85,
       ),
       itemCount: achievements.length,
       itemBuilder: (context, index) {
