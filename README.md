@@ -292,8 +292,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Fl Chart for data visualization
 - Material Design for UI components
 
-## 📞 Support
-
-For support, email support@mathdrill.com or create an issue in the repository.
 
 ---
